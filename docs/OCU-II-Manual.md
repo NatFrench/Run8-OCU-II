@@ -8,9 +8,11 @@ the real thing.
 
 Most of the behaviour follows CANAC's operating instructions: *CANAC RCLS Job Aid* (Canadian Pacific
 Railway, rev. 07/06/2005), which is publicly available online. Section numbers like
-"(job aid 5.2)" point to it. Where the real unit's behaviour isn't documented, the emulation makes a
-reasonable guess. Those places are marked **[guess]**. Where Run8 forces a difference, it's marked
-**[Run8]**. Section 13 collects all the differences in one place.
+"(job aid 5.2)" point to it. Values marked **[typical]** are typical railroad settings that the job
+aid doesn't give; each railroad could have its units programmed differently. Where the real unit's
+behaviour isn't known, the emulation makes a reasonable guess. Those places are marked **[guess]**.
+Where Run8 forces a difference, it's marked **[Run8]**. Section 13 collects all the differences in
+one place.
 
 ---
 
@@ -151,24 +153,27 @@ both at once.
 | Position | What it does |
 |---|---|
 | **Stop** | No power. A moving train is braked to a stand still. |
-| **Coast B** | No power and a light locomotive brake. On a shove this stretches the slack and eases the train down without a jolt, the same as selecting Coast and setting IND by hand but done one-handed. How strong the brake is on the real unit isn't known yet; the emulator uses the same amount as IND Low. |
-| **Coast** | No power, no brake. The train rolls freely. |
+| **Coast B** | No power and a light locomotive brake (about 15 psi), so the train gradually stops. On a shove this stretches the slack and eases the train down without a jolt, the same as selecting Coast and setting IND by hand but done one-handed. Above 2 mph, more locomotive brake is used to bring the train down to 2 mph. **[typical]** |
+| **Coast** | No power and no brake, but above 2 mph the locomotive brake is used to bring the train down to 2 mph. **[typical]** |
 | **Couple** | About 1 mph, for coupling (job aid 1.6). |
 | **4** | 4 mph. |
-| **7** | 7 mph. **[guess]** Labelled on the unit. Speed assumed from the legend. |
-| **10** | 10 mph. **[guess]** As above. |
-| **Max** | 15 mph. **[guess]** The real maximum is set per railroad. |
+| **7** | 7 mph. **[typical]** |
+| **10** | 10 mph. **[typical]** |
+| **Max** | 15 mph. **[typical]** |
 
 Starting from Stop, any position above Coast needs **RSC pressed first** (see section 7.3).
-Otherwise the train won't move and the SPEED lamp flashes.
+Otherwise the train won't move, the SPEED lamp flashes and the display shows
+`SPEED SELECT WITHOUT RSC`.
 
 ### 4.2 DIR: direction paddle (top right)
 
 **Fwd**, **N** (neutral) and **Rev**. This is the locomotive reverser. The paddle stays in whichever
 of its three positions you put it.
 
-- The direction only changes while the train is stopped (direction-of-movement protection). If you
-  move DIR while rolling, the DIR lamp flashes and the change happens once the train stops.
+- The direction only changes while the train is stopped (direction-of-movement protection).
+  **Moving DIR while the train is moving causes a train brake (full service) penalty** and the
+  display shows `INVALID DIRECTION CHANGE` **[typical]**. The DIR lamp flashes and the new
+  direction takes effect once the train stops.
 - In **N**, the locomotive won't load.
 - The headlight at the leading end follows the direction (see HEADLT DIM below).
 
@@ -183,15 +188,18 @@ show the selected position. Each position asks for a set reduction of the equali
 |---|---|---|
 | **Rel** | none | Release the train brakes. The normal running position. |
 | **Min** | 7 psi | Minimum application, for example stretching or conditioning brake shoes (job aid 1.13) |
-| **Light** | 10 psi | |
-| **Med** | 15 psi | |
+| **Light** | 12 psi **[typical]** | |
+| **Med** | 18 psi **[typical]** | |
 | **Full** | 26 psi | Full service, for stopping and for securing standing equipment (job aid 1.7, 1.8) |
 | **Charge** | none | Charge the brake pipe after putting cars on air (job aid 8.1). The locomotive brake is held fully applied in this position. |
 
 - Applications are ramped smoothly, about 10 seconds from release to full service. Jumping straight
   to full service makes Run8 throw an undesired PCS open fault. **[Run8]** Releases are
   immediate.
+- There's no partial release: stepping back from Full to Med leaves the brakes where they are.
+  Only Rel releases them.
 - The locomotive **won't take power unless AUTO is in Rel**.
+- AUTO at Light or more while SPEED is at 4 or higher drags the train brakes (section 8.4).
 - Moving AUTO to Rel after an application starts **brake recovery**. The display shows `CHRG` and
   the AUTO lamp flashes until the brake pipe has recharged (within 4 psi of the feed valve, with
   airflow down to 20 CFM). Then you hear the unsolicited **"Brake recovery complete"** message, and
@@ -206,12 +214,17 @@ doing.
 | Position | Effect |
 |---|---|
 | **Rel** | No extra locomotive brake. The normal running position. |
-| **Low** | Light locomotive brake application (used in the running brake test) |
-| **Med** | Medium application |
-| **Full** | Full locomotive brake |
+| **Low** | Light application, 15 psi brake cylinder **[typical]** (used in the running brake test) |
+| **Med** | Medium application, 30 psi **[typical]** |
+| **Full** | Full application, 45 psi **[typical]** |
 | **Emerg** (ES) | **Emergency.** Full locomotive brake, brake pipe vented to zero, emergency penalty. |
 
+- The on-board computer never applies less locomotive brake than IND asks for, but speed control or
+  Stop may apply more.
+- Each locomotive in Run8 needs a slightly different lever position for the same pressure, so the
+  emulation adjusts the lever until the brake cylinder gauge reads the right pressure. **[Run8]**
 - The locomotive won't take power unless IND is in Rel.
+- IND at Med or Full while SPEED is at 4 or higher drags the locomotive brakes (section 8.4).
 - **Moving IND into Emerg always causes an emergency penalty**, even when standing still. Recovering
   takes at least a minute (section 9.2). The job aid uses Emerg on purpose when leaving the OCU or
   entering the locomotive nose (job aid 7.0). Don't go past Full unless you mean it.
@@ -222,6 +235,7 @@ doing.
     - Press it regularly while working to show you're alert (section 8.1).
     - Press it before selecting a speed from Stop (section 7.3).
     - Press it as part of every penalty recovery (section 9).
+    - Hold it for more than 2 seconds to sand the rails, for as long as it's held. **[typical]**
 - **PITCH** (top right corner): hands control to the second OCU (section 11). There is no second OCU
   in this emulation, so it reports `PITCH FAILED`.
 - **Time / Status toggle** (both positions are momentary; it springs back to centre)
@@ -251,7 +265,7 @@ moment after the mouse leaves the antenna mount or the strip.
 | Button | Function |
 |---|---|
 | **POWER** | Turns the OCU on or off. Power-on starts the self-test (section 7.1). Turning it off with the beltpack in control leaves the locomotive brake applied and the throttle at idle. |
-| **HEADLT DIM** | Switches the headlight between bright and dim. Bright lights the headlight at the leading end only (front for Fwd, rear for Rev). The other end stays dim. The headlight icon by the display lights when bright is selected. |
+| **HEADLT DIM** | Switches the headlight between bright and dim. Both ends are dim at power-up. Bright lights the headlight at the leading end only (front for Fwd, rear for Rev), and follows direction changes. The other end stays dim. The display shows `HDLT BRIGHT` or `HDLT DIM`, and the headlight icon by the display lights when bright is selected. |
 | **SAND** | Hold to sand the rails. Sand is also applied automatically during wheel slip. |
 | **CAB** | Changeover between MANUAL and BELTPACK (section 2.3). |
 
@@ -268,22 +282,32 @@ decimal point after it. It normally shows the **locomotive's actual speed** in m
 | Display | Meaning |
 |---|---|
 | `TEST` | Self-test after power-on. All lamps light for the first 2 seconds (lamp test). |
+| `RSC9` ... `RSC0` | RSC warning, counting down the seconds to the penalty. Press RSC now. |
 | `OK 4026 A F1` | Self-test passed. Shows the locomotive number, OCU letter and radio channel it's programmed for (job aid 2.10). The locomotive number is the one you control in Run8, when it can be read (section 12.2). |
 | *(any status message)* | Shown for 6 seconds after pressing Status |
-| `RECOVERED` | A penalty recovery was accepted |
-| `BRAKE RECOVERY COMPLETE` | Brake pipe recharged after a release. The train may move. |
+| `INVALID DIRECTION CHANGE` | DIR was moved while the train was moving (section 4.2) |
+| `SPEED SELECT WITHOUT RSC` | A speed above Coast was selected without pressing RSC first (section 7.3) |
+| `RECOVERED` | A train brake or emergency recovery was accepted. The brakes now recharge. |
+| `SERVICE BRAKE RECOVERY COMPLETE` | A service penalty was recovered |
+| `FULL SERVICE BRAKE RECOVERY COMPLETE` | Brake pipe recharged after a train brake penalty. The train may move. |
+| `EMERGENCY BRAKE RECOVERY COMPLETE` | Brake pipe recharged after an emergency penalty. The train may move. |
+| `BRAKE RECOVERY COMPLETE` | Brake pipe recharged after a release of your own. The train may move. |
+| `WHEEL SLIP` | Run8 reported wheel slip. Power is cut back and sand applied. |
+| `CAUTION TRAC MTR STALL` | Couple has been selected for 20 seconds and the train hasn't moved |
+| `HDLT BRIGHT`, `HDLT DIM` | The headlight was switched |
 | `PITCH FAILED` | Pitch wasn't caught (single OCU) |
-| `RSC` | RSC warning. Press RSC now. |
+| `IND BRAKES DRAGGING`, `AUTO BRAKES DRAGGING` | Brakes applied while SPEED is at 4 or higher. Release them or select a lower speed within 30 seconds (section 8.4). |
 | `NO LINK` | No data from the locomotive (Run8) for 3 seconds |
 | `PCS 87` | Run8's PCS is open. Seconds left until it can be reset (section 9.5). **[Run8]** |
-| `EMG PEN` | Emergency penalty in effect |
-| `TBK PEN` | Train brake penalty in effect |
-| `SVC PEN` | Service penalty in effect |
+| `RECOVER EMG BRK` | Emergency penalty in effect (section 9.2) |
+| `RECOVER FS BRK` | Train brake (full service) penalty in effect (section 9.3) |
+| `RECOVER SRVC BRK` | Service penalty in effect (section 9.1) |
 | `CHRG` | Brake recovery in progress (brake pipe charging) |
 | `4.0` | Normal: actual speed |
 
-The exact wording on a real OCU II display isn't documented. These messages are stand-ins
-**[guess]**. The spoken status messages use the job aid's wording.
+The messages use typical real-system wording **[typical]**, using this unit's names for its
+controls (RSC, IND, AUTO). `TEST`, `OK`, `CHRG`, `NO LINK`, `PCS` and
+`PITCH FAILED` are stand-ins **[guess]**. The spoken status messages use the job aid's wording.
 
 ### 5.2 Lamps
 
@@ -292,7 +316,7 @@ The exact wording on a real OCU II display isn't documented. These messages are 
 
 | Flashing lamp | Meaning |
 |---|---|
-| SPEED | A speed above Coast is selected but the train can't move: RSC wasn't pressed first, or power is blocked (section 8.4) |
+| SPEED | A speed above Coast is selected but the train can't move: RSC wasn't pressed first, or power is blocked (section 8.5) |
 | AUTO | Brake recovery in progress, or a train brake penalty is waiting for recovery |
 | IND | An emergency or service penalty is waiting for recovery |
 | DIR | DIR was moved while rolling. The change takes effect once stopped. |
@@ -311,7 +335,7 @@ crew's portable radios. Your PC speakers stand in for both. The talker's voice i
 | Sound | Meaning |
 |---|---|
 | Short beep | A control was moved or a button pressed |
-| Double beep | "PCS reset" ready |
+| Double beep | "PCS reset" ready, brakes dragging, or traction motor stall |
 | Falling three-tone | A penalty brake application has occurred |
 | Low double tone | Communication with the locomotive was lost |
 | Pulsing alarm | RSC warning: press RSC within 10 seconds |
@@ -322,6 +346,7 @@ Talker messages include:
 - The penalty cause followed by its recovery instruction, for example "Reset safety control
   timeout. Recover train brake from beltpack."
 - Unsolicited "Brake recovery complete".
+- "Independent brakes dragging" and "Train brakes dragging".
 - Spoken status reports (Status button).
 - "P C S reset. Recover emergency from beltpack."
 - "Pitch failed".
@@ -339,7 +364,7 @@ off from the right-click menu. Volume is in the settings file.
 2. The OCU runs its self-test: `TEST` on the display, with all lamps lit briefly. The real unit
    takes about 60 seconds. The emulation takes 10 by default. **[changed for convenience]**
 3. The display shows `OK` with the locomotive number, OCU letter and channel.
-4. As on the real unit, every power-up ends in a **System reset** train brake penalty (`TBK PEN`).
+4. As on the real unit, every power-up ends in a **System reset** train brake penalty (`RECOVER FS BRK`).
    Press **Status** and follow the instruction: *"Recover train brake from beltpack"* (section 9.3).
 5. Click **CAB** to change over to BELTPACK when you're ready to take control.
 
@@ -354,16 +379,20 @@ off from the right-click menu. Volume is in the settings file.
 ### 7.3 Starting a movement
 
 1. Set **DIR** to Fwd or Rev.
-2. Press **RSC**, then **within 3 seconds** move SPEED to the speed you want (for example Couple or
-   4) (job aid 3.5 step 5, 3.6 step 3).
+2. Press **RSC**, then **within 5 seconds** **[typical]** move SPEED to the speed you want (for
+   example Couple or 4) (job aid 3.5 step 5, 3.6 step 3).
 3. Check the train is moving in the direction you asked for (job aid 1.10).
 
-If you miss the 3-second window, the SPEED lamp flashes and nothing happens. Go back to Stop, or
-press RSC and move SPEED again. Once moving, you can change between speeds freely without RSC.
+If you miss the 5-second window, the SPEED lamp flashes, the display shows
+`SPEED SELECT WITHOUT RSC` and nothing happens. Go back to Stop, or press RSC and move SPEED again.
+Once moving, you can change between speeds freely without RSC.
 
 ### 7.4 Changing speed and stopping
 
 - Move SPEED up or down. The train accelerates under power or slows using the locomotive brake.
+- **To ease off:** Coast B takes power off and applies a light locomotive brake, so the train
+  gradually stops. Coast takes power off with no brake. Above 2 mph, both use the locomotive brake
+  to bring the train down to 2 mph.
 - **To stop:** move SPEED to **Stop**. Power comes off, the locomotive brake slows the train at about 1 mph per second, and once it's stopped the full locomotive brake applies.
 - **With cars:** the locomotive brake alone may not hold a heavy train. Use AUTO (train brake) to
   stop it: Min to Full as needed. Then put SPEED to Stop, return AUTO to Rel, and wait for "Brake
@@ -376,7 +405,8 @@ press RSC and move SPEED again. Once moving, you can change between speeds freel
 
 ### 7.6 Changing direction
 
-Stop completely (SPEED to Stop), move DIR, then press RSC and select a speed within 3 seconds.
+Stop completely (SPEED to Stop), move DIR, then press RSC and select a speed within 5 seconds.
+Moving DIR before the train has stopped causes a train brake penalty (section 4.2).
 
 ### 7.7 Putting cars on air (job aid 8.1)
 
@@ -405,12 +435,12 @@ To resume, return AUTO to Rel and wait for "Brake recovery complete" (job aid 11
 
 Whenever SPEED is off Stop, or the train is moving, the RSC timer runs.
 
-1. After **50 seconds** without an RSC press, the **pulsing alarm** sounds and the display shows
-   `RSC`.
+1. After **50 seconds** without an RSC press, the **pulsing alarm** sounds and the display counts
+   down from `RSC9` to `RSC0`.
 2. After **10 more seconds**, a **train brake penalty** occurs (job aid 3.2).
 
-Pressing RSC resets the timer. So does moving any control on the OCU. **[guess]** The job aid isn't
-clear whether other controls reset it.
+Pressing RSC resets the timer. Before the alarm sounds, moving any other control on the OCU resets
+it too; once the alarm is sounding, only RSC does. **[typical]**
 
 ### 8.2 Communication loss
 
@@ -419,9 +449,18 @@ display shows `NO LINK`. This happens if Run8 closes or the Custom Input Device 
 
 ### 8.3 Direction-of-movement protection
 
-The reverser only changes while the train is stopped (section 4.2).
+The reverser only changes while the train is stopped. Moving DIR while the train is moving causes a
+train brake penalty (section 4.2).
 
-### 8.4 Power interlocks
+### 8.4 Dragging brakes
+
+If SPEED is at 4 or higher while IND is at Med or Full, or AUTO is at Light or more, the OCU
+double-beeps, the talker says "Independent brakes dragging" or "Train brakes dragging", and the
+display shows `IND BRAKES DRAGGING` or `AUTO BRAKES DRAGGING`. Within **30 seconds**, either back
+the brake off (IND to Low or Rel, AUTO to Min or Rel) or move SPEED to Couple or lower. Otherwise a
+**service penalty** occurs. **[typical]**
+
+### 8.5 Power interlocks
 
 The on-board computer won't apply power if any of these are true:
 
@@ -443,20 +482,24 @@ conditions, **Status** tells you which one it is, using the job aid's messages (
 
 Check the IND and DIR lamps yourself.
 
-### 8.5 Automatic functions
+### 8.6 Automatic functions
 
-- **Wheel slip:** power is cut back and sand applied automatically.
+- **Wheel slip:** power is cut back and sand applied automatically, and the display shows
+  `WHEEL SLIP`.
+- **Traction motor stall:** if Couple has been selected for 20 seconds and the train still hasn't
+  moved, the OCU double-beeps and shows `CAUTION TRAC MTR STALL`. **[typical]**
 - **Cab alerter:** Run8's cab alerter is acknowledged automatically in BELTPACK, as on a real RCL
   locomotive, where RSC replaces it.
 - **Slow speed control:** turned off in Run8 at each changeover to BELTPACK.
 
-### 8.6 Tilt protection (man-down)
+### 8.7 Tilt protection (man-down)
 
-The real OCU has a tilt sensor. If the unit tips past 45 degrees, for example because the operator
-has fallen, a continuous alarm sounds and the display warns of the tilt. If the OCU isn't stood
-upright within a few seconds, an emergency penalty applies. Holding **Time** until the double beep
-starts a tilt time-out, which bypasses the protection for a short time for work that needs the OCU
-tipped (section 4.5).
+The real OCU has a tilt sensor. If the unit tips past 45 degrees for more than a second, for
+example because the operator has fallen, a continuous alarm sounds and the display counts down.
+If the OCU isn't stood upright within 5 seconds, an emergency penalty applies. **[typical]**
+Holding **Time** until the double beep, with the train stopped, starts a tilt time-out: the
+protection is bypassed for 60 seconds for work that needs the OCU tipped (job aid 3.3, section
+4.5).
 
 This feature is not currently simulated.
 
@@ -471,16 +514,16 @@ instruction again.
 
 | Penalty | Display | Brake application | Caused by |
 |---|---|---|---|
-| **Service** | `SVC PEN` | Full locomotive brake | Communication loss while cleared to move |
-| **Train brake** | `TBK PEN` | Full locomotive brake plus full-service train brake | Power-up (System reset), RSC timeout |
-| **Emergency** | `EMG PEN` | Full locomotive brake, brake pipe vented to zero, reverser centred | IND moved to Emerg, Run8's PCS opening for any reason |
+| **Service** | `RECOVER SRVC BRK` | Full locomotive brake | Communication loss while cleared to move, dragging brakes |
+| **Train brake** (full service) | `RECOVER FS BRK` | Full locomotive brake plus full-service train brake | Power-up (System reset), RSC timeout, DIR moved while moving |
+| **Emergency** | `RECOVER EMG BRK` | Full locomotive brake, brake pipe vented to zero, reverser centred | IND moved to Emerg, Run8's PCS opening for any reason |
 
 All recovery steps that need RSC must be completed **within 3 seconds** of pressing RSC, and in the
 order shown. If you're too slow, start again from the RSC press.
 
 ### 9.1 Recover service from beltpack (job aid 5.4)
 
-1. Move SPEED to **Stop**.
+1. Move SPEED to **Stop**. The display shows `SERVICE BRAKE RECOVERY COMPLETE`.
 
 ### 9.2 Recover emergency from beltpack (job aid 5.2)
 
@@ -492,7 +535,7 @@ order shown. If you're too slow, start again from the RSC press.
 5. Press **RSC**, and **within 3 seconds**:
 6. Move IND to **Rel**.
 7. The display shows `RECOVERED` then `CHRG`. Wait for the unsolicited **"Brake recovery
-   complete"**.
+   complete"** and `EMERGENCY BRAKE RECOVERY COMPLETE`.
 
 > **Mouse tip:** click the word "Emerg" in the IND column, click RSC, then click the word "Rel" in
 > the IND column. Three clicks.
@@ -503,7 +546,7 @@ order shown. If you're too slow, start again from the RSC press.
 2. Move AUTO to **Full**.
 3. Press **RSC**, and **within 3 seconds**:
 4. Move AUTO to **Rel**.
-5. Wait for the unsolicited **"Brake recovery complete"**.
+5. Wait for the unsolicited **"Brake recovery complete"** and `FULL SERVICE BRAKE RECOVERY COMPLETE`.
 
 ### 9.4 Release train brake from beltpack (job aid 5.5)
 
@@ -567,7 +610,7 @@ Required after a System reset or when taking charge. The locomotive will move du
 1. Release Run8's hand brakes.
 2. AUTO must have been in **Rel** for at least 2 minutes.
 3. Set DIR to Fwd or Rev.
-4. Press RSC, and move SPEED to **Couple** within 3 seconds.
+4. Press RSC, and move SPEED to **Couple** within 5 seconds.
 5. Check the locomotive moves in the selected direction and all brakes release.
 6. Set IND to **Low**. Check the brakes apply.
 7. Set IND to **Rel**. Check the brakes release.
@@ -581,7 +624,7 @@ Required after a System reset or when taking charge. The locomotive will move du
 ### 10.5 Running brake test (job aid 3.6)
 
 1. Set DIR to Fwd or Rev.
-2. Press RSC, and move SPEED to **4** within 3 seconds.
+2. Press RSC, and move SPEED to **4** within 5 seconds.
 3. Set IND to **Low**. Check the brakes apply firmly.
 4. Move IND to **Rel**.
 
@@ -642,17 +685,21 @@ Changes take effect after **Reload settings**. Useful settings:
 | `LocomotiveId`, `OcuLetter`, `Channel` | 0000, A, F1 | What the OCU is "programmed" for. Shown at power-up and spoken in status. `LocomotiveId` is only used when the locomotive can't be read from Run8 (below). |
 | `LocomotiveFromRun8` *(top level)* | true | Use the unit number of the locomotive you control in Run8 instead of `LocomotiveId`. Run8 doesn't send it to input devices, so it's read from `Run8.log` in the game folder, which records it each time you take a train. |
 | `Run8Folder` *(top level)* | *(empty)* | Run8's install folder. Only needed if the folder can't be found from the running game. |
-| `IndLow`, `IndMed`, `IndFull` | 70, 150, 255 | Independent brake handle for each IND position (0 to 255) |
-| `MinReductionPsi` ... `FullReductionPsi` | 7, 10, 15, 26 | Train brake reduction for each AUTO position |
+| `IndLowPsi`, `IndMedPsi`, `IndFullPsi` | 15, 30, 45 | Locomotive brake cylinder pressure for each IND position |
+| `CoastBPsi`, `CoastLimitMph` | 15, 2 | Coast B's locomotive brake, and the speed Coast and Coast B bring the train down to |
+| `MinReductionPsi` ... `FullReductionPsi` | 7, 12, 18, 26 | Train brake reduction for each AUTO position |
 | `SelfTestSeconds` | 10 | Self-test length. Set 60 for the real unit's timing. |
 | `RscTimeoutSeconds`, `RscWarningSeconds` | 50, 10 | RSC alarm and penalty timing |
-| `RscWindowSeconds` | 3 | Time allowed after RSC for the next step |
+| `SpeedSelectWindowSeconds` | 5 | Time allowed after RSC to select a speed |
+| `RscWindowSeconds` | 3 | Time allowed after RSC for the next recovery step |
+| `DraggingBrakeSeconds` | 30 | Time to back off dragging brakes before the service penalty |
 | `EmergencyMinimumSeconds` | 60 | Minimum wait before an emergency can be recovered |
 | `LowMainReservoirPsi` | 110 | Power is blocked below this |
 | `TalkerEnabled`, `TalkerVolume`, `SoundVolume` | | Voice and beeper |
 
-The settings file stores every value. If a future version changes a default, your file keeps the
-old value until you edit it.
+The settings file stores every value. When a new version changes the operating defaults, it resets
+the operating values in your file to the new ones once, keeping your locomotive number, OCU letter,
+channel, keys, window position and sound settings.
 
 ### 12.3 Event log
 
@@ -669,8 +716,10 @@ for working out what happened after an unexpected penalty.
 | Radio, repeaters, OCU programming (OPP) | Two-way radio link, infrared programming | Direct link to Run8. Programming is the settings file. |
 | Self-test | About 60 seconds | 10 seconds by default (adjustable) |
 | Second OCU, pitch and catch | Supported | Single OCU. PITCH always fails. |
-| Display wording and beeps | Undocumented | Stand-ins |
-| Coast B brake strength, 7, 10, Max positions | Undocumented | Best guesses (section 4.1) |
+| Display wording | Not documented for the OCU II | Typical real-system wording, with some stand-ins (section 5.1) |
+| Beeps | Undocumented | Stand-ins |
+| Speeds, brake pressures and timings | Set per railroad | Typical settings (marked **[typical]**) |
+| Moving the wrong way for a while (rolling back against the selected direction) | Penalty | Not detected: Run8 doesn't report which way the train is moving |
 | Tilt sensor and tilt time-out (Time) | Built in | Not in this version |
 | Emergency recovery wait | Undocumented | 60 seconds plus Run8's 2-minute PCS reset |
 | RSC test revving the engine | Engine revs in neutral | No rev |
@@ -686,8 +735,8 @@ for working out what happened after an unexpected penalty.
 |---|---|
 | Link strip says "No data from Run8" / display `NO LINK` | Custom Input Device enabled in Run8's Controls menu on the right port. |
 | "Port 18889 is in use by another program" | Another tool (or a second copy of the overlay) is listening. Close it, then right-click and choose **Reload settings**. |
-| Selected a speed but nothing happens, SPEED lamp flashing | RSC wasn't pressed within 3 seconds before selecting a speed, or power is blocked (AUTO or IND not in Rel, DIR in N, brakes charging). See section 8.4. |
-| Display stuck on `EMG PEN` | Follow section 9.2 exactly, in order: Stop, AUTO Rel (not Charge), IND Emerg, RSC, then IND Rel within 3 seconds. Wait at least 60 seconds after the emergency, and for any `PCS` countdown to finish, before pressing RSC. |
+| Selected a speed but nothing happens, SPEED lamp flashing | RSC wasn't pressed within 5 seconds before selecting a speed (`SPEED SELECT WITHOUT RSC`), or power is blocked (AUTO or IND not in Rel, DIR in N, brakes charging). See section 8.5. |
+| Display stuck on `RECOVER EMG BRK` | Follow section 9.2 exactly, in order: Stop, AUTO Rel (not Charge), IND Emerg, RSC, then IND Rel within 3 seconds. Wait at least 60 seconds after the emergency, and for any `PCS` countdown to finish, before pressing RSC. |
 | Display shows `CHRG` for a long time | The brake pipe is still charging. Check Run8's main reservoir and that the brake pipe isn't open somewhere (angle cocks, broken train line). |
 | Locomotive doesn't respond at all | CAB must be in **BELTPACK**. In MANUAL, the overlay doesn't send anything. |
 | Train won't reach the selected speed | Run8's slow speed control may be on (changeover to BELTPACK again turns it off). Check traction motors and that the hand brake is off. |
