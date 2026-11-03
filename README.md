@@ -22,6 +22,10 @@ This is a simulator for Run8 only. It talks to Run8 on the same PC and nothing e
 radio, no connection to other computers, and no way to communicate with real locomotive or remote
 control equipment.
 
+This project is not, and won't become, a guide to reverse engineering remote control locomotive
+systems. It doesn't document how real equipment communicates: no radio protocols, commands,
+telemetry, addressing or pairing details.
+
 ## Licence
 
 Copyright © 2026 Nathan French. Licensed under the [GNU General Public License v3.0](LICENSE),

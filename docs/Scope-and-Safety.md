@@ -31,6 +31,10 @@ Beltpack OCU II remote control unit for use with Run8 Train Simulator V3, and no
   pairing details, firmware, or radio recordings.
 - **No transmitting.** No part of this project involves transmitting on railroad radio frequencies,
   including during research on real hardware.
+- **Not a reverse-engineering guide.** The project is not, and won't become, a guide to reverse
+  engineering remote control locomotive systems. It doesn't document how real equipment
+  communicates: its radio protocols, commands, telemetry, addressing or pairing. (The locomotive
+  data it uses comes from Run8's own published interface, not from real equipment.)
 
 ## Contributions
 
