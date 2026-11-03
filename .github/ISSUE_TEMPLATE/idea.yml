@@ -1,0 +1,19 @@
+name: Idea or request
+description: A feature, setting or improvement you'd like to see.
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: And how you'd use it.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Scope
+      options:
+        - label: This stays within a Run8 simulator. It doesn't ask for radio, real-equipment or transmit features (see Scope and safety).
+          required: true

@@ -1,0 +1,33 @@
+name: Bug report
+description: The program crashed, froze, or did something it shouldn't.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Right-click the beltpack and choose About.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what happened, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Event log
+      description: |
+        Press Win+R, paste %LocalAppData%\Run8RclController and press Enter. Drag events.log into
+        this box, and mention roughly what time the problem happened.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Scope
+      options:
+        - label: This doesn't include radio, protocol, addressing or pairing details of real equipment (see Scope and safety).
+          required: true

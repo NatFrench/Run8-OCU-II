@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: General discussion and questions
+    url: https://github.com/NatFrench/Run8-OCU-II/discussions
+    about: Chat about the project, ask questions, or share stories about the real unit.
+  - name: Safety concern
+    url: https://github.com/NatFrench/Run8-OCU-II/security/advisories/new
+    about: Something that could help interfere with real railroad equipment. Reported privately.

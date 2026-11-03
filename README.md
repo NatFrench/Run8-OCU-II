@@ -16,6 +16,19 @@ self-tests.
 - [Scope and safety](docs/Scope-and-Safety.md): what the project will and won't contain.
 - [To-do list](TODO.md): what's still being checked and built.
 
+## Feedback
+
+Ran the real OCU II? Your knowledge is the most valuable thing this project can get.
+
+- **Something differs from the real unit, or you can fill a gap in the to-do list:** open an issue
+  and choose [Compare with the real unit](https://github.com/NatFrench/Run8-OCU-II/issues/new/choose).
+- **Bugs and ideas:** open an [issue](https://github.com/NatFrench/Run8-OCU-II/issues/new/choose).
+- **Questions, chat and stories about the real unit:**
+  [Discussions](https://github.com/NatFrench/Run8-OCU-II/discussions).
+
+Please keep feedback to what an operator sees, hears and does. Don't post radio, protocol,
+addressing or pairing details of real equipment.
+
 ## Scope and safety
 
 This is a simulator for Run8 only. It talks to Run8 on the same PC and nothing else: it has no

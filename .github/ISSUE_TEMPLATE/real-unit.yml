@@ -1,0 +1,56 @@
+name: Compare with the real unit
+description: Something the emulator does differently from the real OCU II, or that we've had to guess.
+title: "[Real unit] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping make the emulator true to the real thing. The to-do list has the things
+        we most need checked. Partial answers, "from memory" and "it varied by railroad" all help.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the unit?
+      options:
+        - Speed selector (Stop, Coast B, Coast, Couple, 4, 7, 10, Max)
+        - Train brake (AUTO) or locomotive brake (IND)
+        - Direction (DIR)
+        - RSC timer
+        - Display and lamps
+        - Beeps, alarms and the talker
+        - Bell, horn, headlights or sand
+        - Procedures, penalties and recovery
+        - Look of the unit
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: emulator
+    attributes:
+      label: What the emulator does
+      description: Or what the manual says it does.
+    validations:
+      required: true
+  - type: textarea
+    id: real
+    attributes:
+      label: What the real unit did
+      description: As much detail as you remember. Timings, wording and sounds are especially useful.
+    validations:
+      required: true
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: How sure are you?
+      options:
+        - Certain
+        - Fairly sure
+        - From memory, a while ago
+        - It varied (by railroad, unit or setup)
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Scope
+      options:
+        - label: This describes only what an operator sees, hears and does. It doesn't include radio, protocol, addressing or pairing details of real equipment (see Scope and safety).
+          required: true
