@@ -18,7 +18,8 @@ The first public release, with the source code published under GPL-3.0.
 - The Bell/Horn toggle sits toward the operator for Off, in the centre for Bell and away for
   Bell/Horn, as on the real unit. Before: upright for Off, leaning away for Bell and further for
   Bell/Horn.
-- The labelled picture in the manual shows the new photo, with both top corner buttons as RSC.
+- The labelled picture in the manual and the program icon show the new photo. The manual's picture
+  labels both top corner buttons as RSC.
 - The download includes `THIRD-PARTY-NOTICES.txt` for NAudio and the .NET runtime.
 
 ## v1.2-beta5 (6 November 2026, tester build)

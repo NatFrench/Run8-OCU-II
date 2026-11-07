@@ -22,13 +22,12 @@ public static class IconRender
     // Sizes at or below this use the simplified styles in the mixed icons.
     private const int SmallSize = 48;
 
-    // The grey face panel inside its sealant border, traced from the skin. Its left edge leans out
-    // toward the bottom, following the case.
+    // The grey face panel inside its bevel, from the face edges in tools/make_skin.py. Both sides lean
+    // out toward the bottom, following the case as seen from above.
     private static readonly Point[] FaceOutline =
     {
-        new(92, 132), new(104, 124), new(632, 125), new(648, 131), new(662, 145), new(667, 165), new(670, 205), new(674, 240),
-        new(674, 262), new(670, 282), new(662, 289), new(122, 289), new(96, 281), new(64, 272),
-        new(61, 250), new(64, 225), new(69, 200), new(74, 172), new(80, 147),
+        new(81, 107), new(88, 101), new(618, 101), new(625, 106), new(669, 270), new(663, 276),
+        new(42, 273), new(36, 267),
     };
 
     // The middle of the unit: both paddles, both toggles and the antenna bracket over the face.
@@ -99,7 +98,7 @@ public static class IconRender
     {
         var panel = new OcuPanel();
         var controller = new RclController(new RclSettings());
-        var view = new FaceplateView(panel) { Controller = controller };
+        var view = new FaceplateView(panel) { Controller = controller, ShowAntenna = false };
         panel.PowerOn = true;
         for (int i = 0; i < 150; i++)
             controller.Update(0.1, panel.Snapshot(), null, false);
