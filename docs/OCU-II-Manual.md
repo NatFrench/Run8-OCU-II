@@ -1,6 +1,6 @@
 # Beltpack OCU II Operator's Manual
 
-### Run8 RCL Controller: CANAC / Cattron Beltpack OCU II emulation
+### Run8 OCU II: CANAC / Cattron Beltpack OCU II emulation
 
 This manual explains every control, indicator, and procedure on the emulated beltpack (Operator
 Control Unit, or OCU), and how to operate a Run8 locomotive with it the way a yard crew would with
@@ -72,10 +72,10 @@ other Custom Input Device tools first.
 
 Start the program:
 
-- **Download:** unzip the download anywhere and run `Run8 Beltpack OCU.exe`. Nothing else needs
+- **Download:** unzip the download anywhere and run `Run8 OCU II.exe`. Nothing else needs
   installing. Windows may say "Windows protected your PC" because the program isn't signed by a
   publisher; click **More info**, then **Run anyway**.
-- **Installed copy:** use the **Run8 Beltpack OCU** shortcut on the desktop or Start menu
+- **Installed copy:** use the **Run8 OCU II** shortcut on the desktop or Start menu
   (installed with `tools\publish.ps1`).
 - **From source:** `Beltpack.Overlay.exe` in `src\Beltpack.Overlay\bin\Debug\net10.0-windows\`
   after building.
@@ -88,8 +88,12 @@ The beltpack appears as a window that stays on top of Run8.
     - Changeover
     - Turn OCU on or off
     - Talker voice
+    - Talker volume: 100%, 75%, 50% or 25% (remembered)
+    - Railroad: None, BNSF, CSX, NS, UP or RER, spoken before the unit number in status reports
+      (remembered)
     - Size
     - Opacity
+    - Antenna (shows a stub of the whip antenna on the jack; on by default)
     - Key bindings
     - Open settings file
     - Reload settings
@@ -124,10 +128,10 @@ The talker announces each changeover.
 ![The OCU II with its controls labelled](images/ocu-labelled.png)
 
 The emulator strip (section 4.6) rises from behind the unit while the mouse is over the top of the
-antenna mount: **POWER**, **HEADLT**, **SAND** and **CAB**, then the link to Run8.
+antenna mount: **POWER**, **HEADLT**, **PITCH** and **CAB**, then the link to Run8.
 
-Each legend has a small red lamp (LED) beside it. A steady lamp shows the selected position. A
-flashing lamp means the OCU wants something from you (see section 5.2).
+Each legend has a small lamp (LED) beside it, coloured by position (see section 5.2), and a second
+LED behind the middle of the word tints a character or two in the same colour. A steady lamp shows the selected position. A flashing lamp means the OCU wants something from you.
 
 **Using the mouse:**
 
@@ -135,10 +139,11 @@ flashing lamp means the OCU wants something from you (see section 5.2).
 |---|---|
 | Any printed position (Emerg, Rel, Fwd, Stop, 4, ...) | Click it to move that control straight to that position |
 | Knobs and paddles (IND knob, SPEED knob, AUTO paddle, DIR paddle) | Left-click steps up one position, right-click steps down, the wheel goes either way. The AUTO paddle stays pushed while you hold the button, then springs back. |
-| Push buttons (RSC, PITCH) | Hold the left button for as long as you'd hold the real button |
-| Time/Status toggle | Right-click and hold to push it down for Status. The word Status also works when held. |
+| Push buttons (RSC in either top corner, PITCH on the strip) | Hold the left button for as long as you'd hold the real button |
+| Time/Status toggle | Click and hold to push it up for Time; right-click and hold to push it down for Status. The words Time and Status also work when held. |
 | Bell/Horn toggle | Click to step the toggle up, right-click to step it down. From Off, a click latches it at Bell; from Bell, click and hold for horn, and it springs back to Bell when you let go. Holding the words Bell / Horn also sounds the horn, and the words Bell and Off select those positions. |
-| Emulator strip buttons | Click (SAND: hold) |
+| Sun key (printed on the face, right of AUTO) | Click to step the lamp and display brightness (section 5.2) |
+| Emulator strip buttons | Click |
 
 ---
 
@@ -148,13 +153,24 @@ flashing lamp means the OCU wants something from you (see section 5.2).
 
 The speed selector requests a speed, not a throttle notch. The on-board computer uses power when
 the train is slower than the selected speed and the locomotive brake when it's faster. It never uses
-both at once.
+both at once. It loads up the way an engineer would, aiming for the same gentle pick-up of about
+half a mph per second whatever the train. One throttle notch, a couple of seconds to see what it
+does, and another only if the train is picking up well short of that. If it's picking up far too
+fast, a notch comes off. Otherwise the notch is held. Power comes off as the train arrives at the
+selected speed and isn't put back unless the train drops half a mph below it or is clearly slowing.
+
+The locomotive brake is worked the same way. If the train runs more than half a mph over the
+selected speed, or keeps picking up with the power off (going downhill), one step of brake goes on,
+then another about every second until the train is slowing. If it slows too hard, a step comes off.
+As the train gets back to the selected speed the brake comes off a step at a time, and on a grade
+enough is kept on to hold it there. It can go as far as full locomotive brake. Speed control doesn't
+use the train brake.
 
 | Position | What it does |
 |---|---|
 | **Stop** | No power. A moving train is braked to a stand still. |
-| **Coast B** | No power and a light locomotive brake (about 15 psi), so the train gradually stops. On a shove this stretches the slack and eases the train down without a jolt, the same as selecting Coast and setting IND by hand but done one-handed. Above 2 mph, more locomotive brake is used to bring the train down to 2 mph. **[typical]** |
-| **Coast** | No power and no brake, but above 2 mph the locomotive brake is used to bring the train down to 2 mph. **[typical]** |
+| **Coast B** | No power and a light locomotive brake (about 15 psi), so the train gradually stops. On a shove this stretches the slack and eases the train down without a jolt, the same as selecting Coast and setting IND by hand but done one-handed. Above 2 mph, more locomotive brake is added a step at a time to bring the train down to 2 mph. **[typical]** |
+| **Coast** | No power and no brake, but above 2 mph locomotive brake is applied a step at a time to bring the train down to 2 mph, then let off. **[typical]** |
 | **Couple** | About 1 mph, for coupling (job aid 1.6). |
 | **4** | 4 mph. |
 | **7** | 7 mph. **[typical]** |
@@ -231,18 +247,19 @@ doing.
 
 ### 4.5 Push buttons on the top edge
 
-- **RSC (Reset Safety Control)** (top left corner)
+- **RSC (Reset Safety Control)** (either top corner). The real unit's two corner buttons aren't
+  labelled; here both are RSC, one for each hand **[guess]**.
     - Press it regularly while working to show you're alert (section 8.1).
     - Press it before selecting a speed from Stop (section 7.3).
     - Press it as part of every penalty recovery (section 9).
     - Hold it for more than 2 seconds to sand the rails, for as long as it's held. **[typical]**
-- **PITCH** (top right corner): hands control to the second OCU (section 11). There is no second OCU
-  in this emulation, so it reports `PITCH FAILED`.
+- **PITCH** is on the back of the real unit, so here it's on the emulator strip (section 4.6).
 - **Time / Status toggle** (both positions are momentary; it springs back to centre)
-    - **Up (Time)**: on the real unit, holding Time until the double beep starts a **tilt
-      time-out**. It bypasses the tilt (man-down) protection for a short time, for work that needs
-      the OCU tipped past 45 degrees without an emergency penalty. This feature is not currently
-      simulated.
+    - **Up (Time)**: holding Time for about 2 seconds with the train stopped, until it gives a short
+      beep, starts a **tilt time-out**. It bypasses the tilt (man-down) protection for a short
+      time, for work that needs the OCU tipped past 45 degrees without an emergency penalty. The
+      beep, `TIME` on the display and the talker message work, with or without a link to Run8, but
+      tilt itself isn't simulated (section 8.7).
     - Push **down (Status)** for a **status report**: a short message on the display, plus a spoken
       talker message with the locomotive number, OCU letter, current condition, any penalty cause,
       and brake pipe pressure.
@@ -252,6 +269,9 @@ doing.
     - **Up (Bell/Horn ▲)** is momentary: horn and bell while held. It springs back to where it was.
     - **Middle (Bell)**: bell on.
     - **Down (Off)**: bell off.
+    - The bell also rings by itself for about 2 seconds as soon as a stopped train is told to move
+      (a speed of Couple or above, with nothing blocking power), as seen in videos of the real
+      unit. It rings before the train starts rolling, to warn anyone nearby.
     - Run8's bell is a push button that turns the bell on or off with each press, so moving the toggle
       presses it as needed to match Run8's bell to the toggle. If you switch the bell in Run8 itself,
       the toggle leaves it alone until you next move the toggle.
@@ -266,7 +286,7 @@ moment after the mouse leaves the antenna mount or the strip.
 |---|---|
 | **POWER** | Turns the OCU on or off. Power-on starts the self-test (section 7.1). Turning it off with the beltpack in control leaves the locomotive brake applied and the throttle at idle. |
 | **HEADLT DIM** | Switches the headlight between bright and dim. Both ends are dim at power-up. Bright lights the headlight at the leading end only (front for Fwd, rear for Rev), and follows direction changes. The other end stays dim. The display shows `HDLT BRIGHT` or `HDLT DIM`, and the headlight icon by the display lights when bright is selected. |
-| **SAND** | Hold to sand the rails. Sand is also applied automatically during wheel slip. |
+| **PITCH** | Hold to pitch control to the second OCU (section 11). There is no second OCU in this emulation, so it reports `PITCH FAILED`. |
 | **CAB** | Changeover between MANUAL and BELTPACK (section 2.3). |
 
 ---
@@ -281,7 +301,7 @@ decimal point after it. It normally shows the **locomotive's actual speed** in m
 
 | Display | Meaning |
 |---|---|
-| `TEST` | Self-test after power-on. All lamps light for the first 2 seconds (lamp test). |
+| `TEST` | Self-test after power-on, after the lamp and display test (section 7.1). |
 | `RSC9` ... `RSC0` | RSC warning, counting down the seconds to the penalty. Press RSC now. |
 | `OK 4026 A F1` | Self-test passed. Shows the locomotive number, OCU letter and radio channel it's programmed for (job aid 2.10). The locomotive number is the one you control in Run8, when it can be read (section 12.2). |
 | *(any status message)* | Shown for 6 seconds after pressing Status |
@@ -312,7 +332,18 @@ controls (RSC, IND, AUTO). `TEST`, `OK`, `CHRG`, `NO LINK`, `PCS` and
 ### 5.2 Lamps
 
 - **Steady:** the selected position.
-- **Flashing:** the OCU is asking for action.
+- **Flashing:** the OCU is asking for action. A flashing lamp is lit for 0.4 seconds once a second.
+
+A small LED behind the middle of each printed word lights with its lamp, tinting a character or two
+of the word in the lamp's colour. The colour depends on the position, as seen on a real
+OCU II:
+
+| Lamps | Red | Yellow | Green |
+|---|---|---|---|
+| SPEED | Stop | Coast B, Coast | Couple, 4, 7, 10, Max |
+| DIR | N | Rev | Fwd |
+| IND | Emerg | Full, Med, Low | Rel |
+| AUTO | Charge | Full, Med, Light, Min | Rel |
 
 | Flashing lamp | Meaning |
 |---|---|
@@ -324,34 +355,63 @@ controls (RSC, IND, AUTO). `TEST`, `OK`, `CHRG`, `NO LINK`, `PCS` and
 The **headlight icon** lights when the headlight is set to bright. The **battery icon** only lights
 during the lamp test. Battery level isn't simulated.
 
+The **sun key**, printed on the face right of the AUTO lamps, sets the brightness of the lamps,
+icons and display: Full, Medium or Low. Each press steps down a setting, and Low goes back round to
+Full. The OCU powers up at Full. The real unit has these three settings; the order and the power-up
+setting are a **[guess]**.
+
 ---
 
 ## 6. Sounds and the talker
 
 The OCU has a small beeper. The locomotive also has a **talker**, a voice that broadcasts on the
-crew's portable radios. Your PC speakers stand in for both. The talker's voice is a stand-in
-(a Windows speech voice) until the real unit's voice can be sourced.
+crew's portable radios. Your PC speakers stand in for both.
+
+The talker plays recordings by Christian Currao (SketchyBlueFlag), from `talker.pak` beside the
+program. Messages that haven't been recorded yet are silent; the list is below. Without
+`talker.pak`, the program says so at startup (you can choose not to be reminded) and a Windows speech
+voice reads every message instead.
+
+Like the real unit, the OCU is silent except for two sounds. It makes no sound when you move a
+control or press a button, for penalties, or when the link to the locomotive is lost; the display
+and the talker tell you instead.
 
 | Sound | Meaning |
 |---|---|
-| Short beep | A control was moved or a button pressed |
-| Double beep | "PCS reset" ready, brakes dragging, or traction motor stall |
-| Falling three-tone | A penalty brake application has occurred |
-| Low double tone | Communication with the locomotive was lost |
-| Pulsing alarm | RSC warning: press RSC within 10 seconds |
+| Steady alarm | RSC warning: press RSC within 10 seconds. The tilt alarm sounds the same. |
+| Short beep | Tilt time-out accepted (Time held for about 2 seconds, train stopped). |
 
 Talker messages include:
 
-- "Changeover to beltpack" and "Changeover to manual".
+- "Locomotive in remote mode" (changeover to BELTPACK) and "Changeover to manual".
 - The penalty cause followed by its recovery instruction, for example "Reset safety control
-  timeout. Recover train brake from beltpack."
-- Unsolicited "Brake recovery complete".
+  timeout. Recover train brake from beltpack." The causes include "Operator requested emergency",
+  "Illegal reverser change" and "Communication interrupted".
+- Unsolicited "Brake recovery complete", and "Brake pipe fully charged" when the brake pipe has
+  charged with AUTO in Charge.
+- "Severe wheel slip" when wheel slip lasts more than 3 seconds **[guess]**, and "Locomotive
+  movement failure" when Couple doesn't get the train moving.
 - "Independent brakes dragging" and "Train brakes dragging".
-- Spoken status reports (Status button).
+- Spoken status reports (Status button). The unit number is read a digit at a time, after the
+  railroad's initials if a railroad is chosen (for example "B N S F 4 0 2 6"), otherwise after
+  "Locomotive". Choose it with right-click, **Railroad**.
 - "P C S reset. Recover emergency from beltpack."
 - "Pitch failed".
 
-The real beeps are undocumented, so these sounds are stand-ins **[guess]**. Turn the talker on or
+Not recorded yet, so silent with the recordings (the rest of the message still plays):
+
+- "Changeover to manual", "Pitch failed. No receiving O C U" and "P C S reset".
+- The causes "System reset", "Reset safety control timeout" and "P C S open", and "Independent
+  brakes dragging" and "Train brakes dragging".
+- In status reports: "Locomotive" (when `Railroad` isn't set), "O C U", "Cause", "OK", "Brake
+  charging in progress", "Brake recovery in progress", "Low main reservoir pressure", "Release
+  train brake from beltpack", "No communication", "P C S open", the PCS reset countdown and the
+  brake pipe pressure.
+- Railroads other than BNSF, CSX, NS, UP and RER.
+
+The real beeps are undocumented. Both sounds are matched to a real OCU II: the alarm is a steady
+high tone, about 3.6 kHz, with no pulsing, and the tilt time-out beep is a quarter of a second at
+the same pitch. Turn the talker on or
 off from the right-click menu. Volume is in the settings file.
 
 ---
@@ -361,12 +421,17 @@ off from the right-click menu. Volume is in the settings file.
 ### 7.1 Power-up and self-test (job aid 2.9)
 
 1. With CAB in MANUAL, click **POWER**.
-2. The OCU runs its self-test: `TEST` on the display, with all lamps lit briefly. The real unit
-   takes about 60 seconds. The emulation takes 10 by default. **[changed for convenience]**
-3. The display shows `OK` with the locomotive number, OCU letter and channel.
-4. As on the real unit, every power-up ends in a **System reset** train brake penalty (`RECOVER FS BRK`).
+2. As on the real unit, every lamp and both icons light for about a second and a half with the
+   display dark, then every dot of the display lights for about a second.
+3. The lamps then show the controls, with AUTO at **Full**, flashing: the OCU always comes up with
+   the train brake at Full, whatever AUTO was left at.
+4. The OCU runs its self-test, with `TEST` on the display. The real unit takes about 60 seconds.
+   The emulation takes 10 by default. **[changed for convenience]**
+5. The display shows `OK` with the locomotive number, OCU letter and channel.
+6. As on the real unit, every power-up ends in a **System reset** train brake penalty (`RECOVER FS BRK`).
    Press **Status** and follow the instruction: *"Recover train brake from beltpack"* (section 9.3).
-5. Click **CAB** to change over to BELTPACK when you're ready to take control.
+   AUTO is already at Full, so press RSC and then move AUTO to Rel.
+7. Click **CAB** to change over to BELTPACK when you're ready to take control.
 
 ### 7.2 Before moving
 
@@ -391,8 +456,10 @@ Once moving, you can change between speeds freely without RSC.
 
 - Move SPEED up or down. The train accelerates under power or slows using the locomotive brake.
 - **To ease off:** Coast B takes power off and applies a light locomotive brake, so the train
-  gradually stops. Coast takes power off with no brake. Above 2 mph, both use the locomotive brake
-  to bring the train down to 2 mph.
+  gradually stops. Coast takes power off with no brake. Above 2 mph, both use the locomotive
+  brake to bring the train down to 2 mph.
+- **Downhill:** speed control holds the selected speed with the locomotive brake, so you shouldn't
+  need IND on a yard grade.
 - **To stop:** move SPEED to **Stop**. Power comes off, the locomotive brake slows the train at about 1 mph per second, and once it's stopped the full locomotive brake applies.
 - **With cars:** the locomotive brake alone may not hold a heavy train. Use AUTO (train brake) to
   stop it: Min to Full as needed. Then put SPEED to Stop, return AUTO to Rel, and wait for "Brake
@@ -435,17 +502,17 @@ To resume, return AUTO to Rel and wait for "Brake recovery complete" (job aid 11
 
 Whenever SPEED is off Stop, or the train is moving, the RSC timer runs.
 
-1. After **50 seconds** without an RSC press, the **pulsing alarm** sounds and the display counts
+1. After **50 seconds** without an RSC press, the **alarm** sounds and the display counts
    down from `RSC9` to `RSC0`.
 2. After **10 more seconds**, a **train brake penalty** occurs (job aid 3.2).
 
 Pressing RSC resets the timer. Before the alarm sounds, moving any other control on the OCU resets
-it too; once the alarm is sounding, only RSC does. **[typical]**
+it too (confirmed by an operator in a video of the real unit). Once the alarm is sounding, only RSC
+does. **[typical]**
 
 ### 8.2 Communication loss
 
-If the locomotive stops answering for **3 seconds**, the OCU gives the low double tone and the
-display shows `NO LINK`. This happens if Run8 closes or the Custom Input Device is disabled. If the train was cleared to move at the time, a **service penalty** occurs.
+If the locomotive stops answering for **3 seconds**, the display shows `NO LINK`. This happens if Run8 closes or the Custom Input Device is disabled. If the train was cleared to move at the time, a **service penalty** occurs.
 
 ### 8.3 Direction-of-movement protection
 
@@ -454,8 +521,7 @@ train brake penalty (section 4.2).
 
 ### 8.4 Dragging brakes
 
-If SPEED is at 4 or higher while IND is at Med or Full, or AUTO is at Light or more, the OCU
-double-beeps, the talker says "Independent brakes dragging" or "Train brakes dragging", and the
+If SPEED is at 4 or higher while IND is at Med or Full, or AUTO is at Light or more, the talker says "Independent brakes dragging" or "Train brakes dragging", and the
 display shows `IND BRAKES DRAGGING` or `AUTO BRAKES DRAGGING`. Within **30 seconds**, either back
 the brake off (IND to Low or Rel, AUTO to Min or Rel) or move SPEED to Couple or lower. Otherwise a
 **service penalty** occurs. **[typical]**
@@ -468,6 +534,7 @@ The on-board computer won't apply power if any of these are true:
 - IND is not in Rel.
 - DIR is in N.
 - Brake recovery is still in progress.
+- Brake pipe is below 55 psi. **[typical]**
 - Main reservoir is below 110 psi.
 - Run8's PCS is open.
 
@@ -476,6 +543,7 @@ conditions, **Status** tells you which one it is, using the job aid's messages (
 
 - "Brake charging in progress"
 - "Brake recovery in progress"
+- "Low brake pipe pressure"
 - "Low main reservoir pressure"
 - "P C S open"
 - "Release train brake from beltpack"
@@ -487,7 +555,8 @@ Check the IND and DIR lamps yourself.
 - **Wheel slip:** power is cut back and sand applied automatically, and the display shows
   `WHEEL SLIP`.
 - **Traction motor stall:** if Couple has been selected for 20 seconds and the train still hasn't
-  moved, the OCU double-beeps and shows `CAUTION TRAC MTR STALL`. **[typical]**
+  moved, the OCU shows `CAUTION TRAC MTR STALL` and the talker says "Locomotive movement
+  failure". **[typical]**
 - **Cab alerter:** Run8's cab alerter is acknowledged automatically in BELTPACK, as on a real RCL
   locomotive, where RSC replaces it.
 - **Slow speed control:** turned off in Run8 at each changeover to BELTPACK.
@@ -495,21 +564,24 @@ Check the IND and DIR lamps yourself.
 ### 8.7 Tilt protection (man-down)
 
 The real OCU has a tilt sensor. If the unit tips past 45 degrees for more than a second, for
-example because the operator has fallen, a continuous alarm sounds and the display counts down.
-If the OCU isn't stood upright within 5 seconds, an emergency penalty applies. **[typical]**
-Holding **Time** until the double beep, with the train stopped, starts a tilt time-out: the
+example because the operator has fallen, the same steady alarm as RSC sounds and the display counts
+down.
+On a real unit the alarm sounds for about 3.75 seconds, then the OCU applies an emergency penalty
+on its own.
+Holding **Time** until it gives a short beep, with the train stopped, starts a tilt time-out: the
 protection is bypassed for 60 seconds for work that needs the OCU tipped (job aid 3.3, section
 4.5).
 
-This feature is not currently simulated.
+Tilting isn't simulated, since there's no way to tip an on-screen OCU. Holding Time still gives the
+beep, `TIME` on the display and the talker message.
 
 ---
 
 ## 9. Penalty brake applications and recovery
 
 When the system detects a problem, it stops the movement with one of three penalty applications
-(job aid 5.0). The penalty is announced by the falling three-tone, the display code, and the talker
-giving the cause and recovery instruction. Press **Status** at any time to hear the recovery
+(job aid 5.0). The penalty is announced by the display code and the talker giving the cause and
+recovery instruction. The OCU itself makes no sound. Press **Status** at any time to hear the recovery
 instruction again.
 
 | Penalty | Display | Brake application | Caused by |
@@ -565,7 +637,7 @@ release.
 
 The beltpack handles this for you. During an emergency penalty in BELTPACK, it holds the reverser in
 neutral and the train brake in emergency, and counts down on the display (`PCS 120`, `PCS 119`, ...).
-When the count reaches zero, it double-beeps and says *"P C S reset. Recover emergency from
+When the count reaches zero, the talker says *"P C S reset. Recover emergency from
 beltpack."* Then do the normal emergency recovery (section 9.2). The release at the end of the
 recovery closes the PCS.
 
@@ -590,7 +662,7 @@ movement first.
 
 1. DIR in **N**.
 2. Press **RSC** and move SPEED to **Coast**.
-3. After **50 seconds**, the pulsing alarm sounds.
+3. After **50 seconds**, the alarm sounds.
 4. After **10 more seconds**, a train brake penalty applies. Brake pipe pressure should drop at
    least 25 psi (watch BP in Run8 or on the overlay's link strip).
 5. Recover train brake from beltpack (section 9.3) and check you hear the recovery message.
@@ -662,7 +734,7 @@ The default bindings use the **numeric keypad**, with NumLock on:
 | Num 7 / Num 1 | IND apply / release | Num + | Status |
 | Num - | Time | Num / | Pitch |
 | Num * | Headlight bright/dim | Scroll Lock | Sand (hold) |
-| *(unbound)* | Power, Changeover | | |
+| *(unbound)* | Power, Changeover, Brightness | | |
 
 To change them:
 
@@ -683,19 +755,25 @@ Changes take effect after **Reload settings**. Useful settings:
 | Setting | Default | Meaning |
 |---|---|---|
 | `LocomotiveId`, `OcuLetter`, `Channel` | 0000, A, F1 | What the OCU is "programmed" for. Shown at power-up and spoken in status. `LocomotiveId` is only used when the locomotive can't be read from Run8 (below). |
+| `Railroad` | *(empty)* | Railroad initials spoken before the unit number in status messages, for example `BNSF`. Also on the right-click menu, which lists the railroads with a recording. |
 | `LocomotiveFromRun8` *(top level)* | true | Use the unit number of the locomotive you control in Run8 instead of `LocomotiveId`. Run8 doesn't send it to input devices, so it's read from `Run8.log` in the game folder, which records it each time you take a train. |
 | `Run8Folder` *(top level)* | *(empty)* | Run8's install folder. Only needed if the folder can't be found from the running game. |
 | `IndLowPsi`, `IndMedPsi`, `IndFullPsi` | 15, 30, 45 | Locomotive brake cylinder pressure for each IND position |
 | `CoastBPsi`, `CoastLimitMph` | 15, 2 | Coast B's locomotive brake, and the speed Coast and Coast B bring the train down to |
+| `BrakeStepPsi`, `BrakeStepUpSeconds` | 4, 1 | Size of each step of locomotive brake speed control applies, and the wait before adding another |
+| `BrakeTooSlowMphPerSecond`, `BrakeTooFastMphPerSecond` | 0.1, 0.6 | Speed control adds brake while the train slows less than the first, and takes a step off if it slows faster than the second |
 | `MinReductionPsi` ... `FullReductionPsi` | 7, 12, 18, 26 | Train brake reduction for each AUTO position |
 | `SelfTestSeconds` | 10 | Self-test length. Set 60 for the real unit's timing. |
 | `RscTimeoutSeconds`, `RscWarningSeconds` | 50, 10 | RSC alarm and penalty timing |
 | `SpeedSelectWindowSeconds` | 5 | Time allowed after RSC to select a speed |
 | `RscWindowSeconds` | 3 | Time allowed after RSC for the next recovery step |
 | `DraggingBrakeSeconds` | 30 | Time to back off dragging brakes before the service penalty |
+| `AutoBellSeconds` | 2 | How long the bell rings when a stopped train is told to move. 0 turns it off. |
 | `EmergencyMinimumSeconds` | 60 | Minimum wait before an emergency can be recovered |
 | `LowMainReservoirPsi` | 110 | Power is blocked below this |
-| `TalkerEnabled`, `TalkerVolume`, `SoundVolume` | | Voice and beeper |
+| `TalkerEnabled` | true | Talker on or off |
+| `TalkerVolume` | 50 | Talker volume in percent: 25, 50, 75 or 100. Also on the right-click menu. |
+| `SoundVolume` | 0.35 | Beeper volume, 0 to 1 |
 
 The settings file stores every value. When a new version changes the operating defaults, it resets
 the operating values in your file to the new ones once, keeping your locomotive number, OCU letter,
@@ -717,10 +795,10 @@ for working out what happened after an unexpected penalty.
 | Self-test | About 60 seconds | 10 seconds by default (adjustable) |
 | Second OCU, pitch and catch | Supported | Single OCU. PITCH always fails. |
 | Display wording | Not documented for the OCU II | Typical real-system wording, with some stand-ins (section 5.1) |
-| Beeps | Undocumented | Stand-ins |
+| Beeps | Undocumented. A real unit only sounds its steady alarm (RSC, tilt) and the tilt time-out beep. | The same. |
 | Speeds, brake pressures and timings | Set per railroad | Typical settings (marked **[typical]**) |
 | Moving the wrong way for a while (rolling back against the selected direction) | Penalty | Not detected: Run8 doesn't report which way the train is moving |
-| Tilt sensor and tilt time-out (Time) | Built in | Not in this version |
+| Tilt sensor and tilt time-out (Time) | Built in | Time gives the beep and message; tilt isn't simulated |
 | Emergency recovery wait | Undocumented | 60 seconds plus Run8's 2-minute PCS reset |
 | RSC test revving the engine | Engine revs in neutral | No rev |
 | AUTO Min on a light engine | Locomotive brakes stay released | Run8 may apply a little locomotive brake |
@@ -740,15 +818,18 @@ for working out what happened after an unexpected penalty.
 | Display shows `CHRG` for a long time | The brake pipe is still charging. Check Run8's main reservoir and that the brake pipe isn't open somewhere (angle cocks, broken train line). |
 | Locomotive doesn't respond at all | CAB must be in **BELTPACK**. In MANUAL, the overlay doesn't send anything. |
 | Train won't reach the selected speed | Run8's slow speed control may be on (changeover to BELTPACK again turns it off). Check traction motors and that the hand brake is off. |
-| The talker is silent | Right-click and check **Talker voice** is ticked. Windows needs an installed speech voice. |
+| The talker is silent | Right-click and check **Talker voice** is ticked, and try **Talker volume**, **100%**. Some messages aren't recorded yet and are always silent (section 6). Without `talker.pak` beside the program, Windows needs an installed speech voice. |
 
 ---
 
 ## 15. Credits
 
-Run8 RCL Controller was designed, photographed and tested by **Nathan French**, and written together
+Run8 OCU II was designed, photographed and tested by **Nathan French**, and written together
 with Cursor's AI coding agent over the first nights of November 2026: V1 in a single night, then the
 photo faceplate, rendered switches and the rest of V1.1 the next.
+
+**Talker audio: Christian Currao (SketchyBlueFlag)**, used with permission. His recordings aren't
+covered by the program's GPL licence; please don't reuse them without his permission.
 
 The faceplate is built from Nathan's photos of a real OCU II. Operating behaviour follows the CANAC
 RCLS Job Aid, with the remaining guesses checked as feedback comes in from people who have run the

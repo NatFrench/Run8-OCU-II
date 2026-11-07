@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Beltpack.Core/Beltpack.Core.csproj" />
+    <Project Path="src/Beltpack.Overlay/Beltpack.Overlay.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Beltpack.Core.Tests/Beltpack.Core.Tests.csproj" />
+  </Folder>
+</Solution>

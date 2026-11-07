@@ -1,0 +1,16 @@
+bin/
+obj/
+.vs/
+*.user
+TestResults/
+__pycache__/
+
+# The author's photos and working files for the skin, and package output
+Reference Pictures/
+Reference Docs/
+art/
+dist/
+research/
+# Talker recordings by Christian Currao, used with his permission and not GPL; they ship only in
+# release downloads, never in the repository
+talker/

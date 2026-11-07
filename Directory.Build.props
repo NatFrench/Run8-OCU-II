@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <Version>2.0.0-beta</Version>
+    <Product>Run8 OCU II</Product>
+    <Authors>Nathan French</Authors>
+    <Company>Nathan French</Company>
+    <Copyright>© 2026 Nathan French. GPL-3.0. Built with Cursor's AI coding agent.</Copyright>
+    <Description>CANAC / Cattron Beltpack OCU II remote control emulator for Run8 Train Simulator V3. Designed, photographed and tested by Nathan French; written together with Cursor's AI coding agent, November 2026.</Description>
+  </PropertyGroup>
+</Project>

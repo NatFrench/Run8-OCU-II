@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Beltpack.Core\Beltpack.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="System.Speech" Version="10.0.14" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyTitle>Run8 OCU II</AssemblyTitle>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- dotnet publish -p:SoftwareRender=true: draws without the graphics card, to diagnose crashes. -->
+  <PropertyGroup Condition="'$(SoftwareRender)' == 'true'">
+    <DefineConstants>$(DefineConstants);SOFTWARE_RENDER</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Skin\*.png;Skin\skin.json;app.ico" />
+  </ItemGroup>
+
+  <!-- Talker recordings, kept outside the repository until their licence is settled. -->
+  <ItemGroup Condition="Exists('..\..\talker')">
+    <None Include="..\..\talker\**\*.mp3;..\..\talker\README.txt" Link="talker\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+
+</Project>

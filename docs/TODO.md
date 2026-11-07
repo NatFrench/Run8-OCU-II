@@ -15,11 +15,16 @@ still welcome. The rest use a best guess, marked **[guess]**.
   the warning sounds; 5 seconds to select a speed after RSC; holding RSC sands.
 - [x] **Dragging brakes and direction changes while moving:** a warning, then a service penalty
   after 30 seconds; moving DIR while moving is a full service penalty.
-- [x] **Tilt timing:** alarm after a second tilted, emergency 5 seconds later.
+- [x] **Tilt timing:** alarm after a second tilted, emergency 3.75 seconds later (the alarm's
+  length measured on a real unit).
 - [ ] **Emergency recovery:** how long the wait is before recovering.
 - [ ] **Display wording:** typical messages are in; the OCU II's own wording on its four-character
   display is still unknown.
-- [ ] **Beeps and alarms:** what they sound like.
+- [x] **Beeps and alarms:** a real unit only sounds its steady alarm (RSC and tilt) and a short beep
+  for the tilt time-out. It's silent otherwise, including for penalties.
+- [x] **Lamp colours:** from a real unit. SPEED Stop red, Coast B and Coast yellow, Couple and up
+  green; DIR N red, Rev yellow, Fwd green; IND Emerg red, Rel green, the rest yellow; AUTO Charge
+  red, Rel green, the rest yellow.
 - [x] **Bell/Horn toggle:** Off and Bell latch; Horn is momentary and rings the bell too.
 - [x] **Brake positions:** IND Low, Med and Full at 15, 30 and 45 psi; AUTO Min, Light, Med and
   Full at 7, 12, 18 and 26 psi.
@@ -30,16 +35,19 @@ still welcome. The rest use a best guess, marked **[guess]**.
 ## Features
 
 - [ ] Bring back tilt protection and the Time (tilt time-out) button. The timings are settled.
-- [ ] Replace the stand-in talker voice with the real unit's voice.
+- [x] Use real talker recordings (by Christian Currao, SketchyBlueFlag).
+- [ ] Record the talker messages that are still silent (listed in the manual, section 6).
+- [x] Permission to include the talker recordings in public downloads (Christian Currao, November
+  2026). They're used with permission and aren't covered by the GPL.
 - [ ] Build the confirmed speeds into the program instead of leaving them as settings.
-- [ ] Refresh the photo skin with cleaned-up photos of the switch bases.
+- [x] Refresh the photo skin: new photos of the owner's unit, with every control photographed in
+  each position.
 
 ## Releasing
 
 - [x] Settle on one name for the program: **Run8 OCU II**.
-- [ ] Use the name everywhere: the program file, the About box and the manual still say "Run8
-  Beltpack OCU" or "Run8 RCL Controller".
-- [ ] Publish the source code here under GPL-3.0.
-- [ ] Put downloads on GitHub Releases.
+- [x] Use the name everywhere: the program file, the window, the About box and the manual.
+- [x] Publish the source code here under GPL-3.0 (v2.0-beta).
+- [x] Put downloads on GitHub Releases (v2.0-beta).
 - [ ] Apply to the SignPath Foundation for free code signing, so Windows stops warning about the
   download.

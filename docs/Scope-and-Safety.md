@@ -1,6 +1,6 @@
 # Scope and safety
 
-Run8 Beltpack OCU is a hobby simulator. It recreates the look and operation of the CANAC/Cattron
+Run8 OCU II is a hobby simulator. It recreates the look and operation of the CANAC/Cattron
 Beltpack OCU II remote control unit for use with Run8 Train Simulator V3, and nothing else.
 
 ## What it is
