@@ -14,6 +14,14 @@ behaviour isn't known, the emulation makes a reasonable guess. Those places are 
 Where Run8 forces a difference, it's marked **[Run8]**. Section 13 collects all the differences in
 one place.
 
+**First time?** [Section 2.4](#24-first-run-getting-a-train-moving) takes you step by step from
+starting the program to a moving train.
+
+> **Safety:** this manual is for a simulator that works with Run8 only. It isn't railroad training
+> and isn't designed for real equipment: don't use it to operate, or as a guide to, real remote
+> control locomotives or any other railroad equipment. Remote control locomotives can kill or
+> injure. Operate real equipment only as your railroad's rules, training and qualification allow.
+
 ---
 
 ## Contents
@@ -100,11 +108,8 @@ The beltpack appears as a window that stays on top of Run8.
     - Exit
 - The overlay never takes keyboard focus away from Run8, so Run8's own keys keep working.
 
-Move the mouse over the top of the antenna mount in the middle of the top edge and a strip of emulator buttons
-rises from behind the unit (section 4.6). It slides away again a moment after the mouse leaves the
-antenna mount or the strip. The right end of the strip shows the link to
-Run8. A green dot with speed, BP and BC means Run8 is talking to the overlay. An amber dot with
-"No data from Run8" means it isn't (see section 14).
+Move the mouse over the top of the antenna mount and the emulator strip rises from behind the unit,
+with POWER, CAB and the link to Run8 (section 4.6).
 
 ### 2.3 Changeover: MANUAL and BELTPACK
 
@@ -112,14 +117,35 @@ On a real RCL locomotive, a **changeover switch** on the electrical panel select
 (normal cab control) or BELTPACK (remote control) (job aid 2.8). The **CAB** button on the emulator
 strip does the same job:
 
-- **CAB: MANUAL:** the overlay sends nothing to Run8. You drive from the cab with Run8's normal
+- **CAB: MANUAL:** the overlay sends nothing to Run8, and you drive with Run8's normal
   controls. The beltpack still runs, but only as a display.
 - **CAB: BELTPACK:** the overlay takes over the throttle, both brakes, the reverser, bell, horn,
-  sand and headlights. It re-sends the lever positions twice a second, so cab keys can't leave them
-  out of step. On changeover it also turns off Run8's slow speed control (Ctrl+C), which would
-  otherwise cut power below the selected speed.
+  sand and headlights, and turns off Run8's slow speed control (Ctrl+C).
 
 The talker announces each changeover.
+
+### 2.4 First run: getting a train moving
+
+The first time, follow these steps from starting the program to a moving train. Each step links to
+the section with the details.
+
+1. In Run8, take a locomotive with the hand brake off and the engine running, and enable the Custom
+   Input Device ([section 2.1](#21-run8)).
+2. Start the overlay ([section 2.2](#22-starting-the-overlay)). Hover over the top of the antenna
+   mount: the link to Run8 at the right end of the strip should show a green dot.
+3. Click **POWER** on the strip. Wait for the lamp test and self-test to finish, with `OK` on the
+   display ([section 7.1](#71-power-up-and-self-test-job-aid-29)).
+4. Every power-up ends in a train brake penalty, `RECOVER FS BRK`. AUTO is already at Full, so press
+   **RSC**, then within 3 seconds click **Rel** in the AUTO column. Wait for "Brake recovery
+   complete" ([section 9.3](#93-recover-train-brake-from-beltpack-job-aid-53)).
+5. Click **CAB** on the strip so it reads **CAB: BELTPACK**
+   ([section 2.3](#23-changeover-manual-and-beltpack)).
+6. Check IND is at **Rel**, and set DIR to **Fwd** or **Rev**.
+7. Press **RSC**, then within 5 seconds click **Couple** or **4** in the SPEED column. The bell rings
+   and the train moves off ([section 7.3](#73-starting-a-movement)).
+8. Press **RSC** at least every 50 seconds while working, or the alarm sounds and a penalty follows
+   ([section 8.1](#81-reset-safety-control-rsc)).
+9. To stop, click **Stop** in the SPEED column ([section 7.4](#74-changing-speed-and-stopping)).
 
 ---
 
@@ -127,23 +153,13 @@ The talker announces each changeover.
 
 ![The OCU II with its controls labelled](images/ocu-labelled.png)
 
-The emulator strip (section 4.6) rises from behind the unit while the mouse is over the top of the
-antenna mount: **POWER**, **HEADLT**, **PITCH** and **CAB**, then the link to Run8.
+Each printed position has a lamp beside it: steady for the selected position, flashing when the OCU
+wants something from you (section 5.2). The emulator strip above the unit is in section 4.6.
 
-Each legend has a small lamp (LED) beside it, coloured by position (see section 5.2), and a second
-LED behind the middle of the word tints a character or two in the same colour. A steady lamp shows the selected position. A flashing lamp means the OCU wants something from you.
-
-**Using the mouse:**
-
-| Control type | How to operate it |
-|---|---|
-| Any printed position (Emerg, Rel, Fwd, Stop, 4, ...) | Click it to move that control straight to that position |
-| Knobs and paddles (IND knob, SPEED knob, AUTO paddle, DIR paddle) | Left-click steps up one position, right-click steps down, the wheel goes either way. The AUTO paddle stays pushed while you hold the button, then springs back. |
-| Push buttons (RSC in either top corner, PITCH on the strip) | Hold the left button for as long as you'd hold the real button |
-| Time/Status toggle | Click and hold to push it up for Time; right-click and hold to push it down for Status. The words Time and Status also work when held. |
-| Bell/Horn toggle | Click to step the toggle up, right-click to step it down. From Off, a click latches it at Bell; from Bell, click and hold for horn, and it springs back to Bell when you let go. Holding the words Bell / Horn also sounds the horn, and the words Bell and Off select those positions. |
-| Sun key (printed on the face, right of AUTO) | Click to step the lamp and display brightness (section 5.2) |
-| Emulator strip buttons | Click |
+**Using the mouse:** click a control itself or its printed label. Left-click moves the control one
+way and right-click moves it back; clicking a printed position moves the control straight there.
+Holding the button down holds a spring-loaded control (RSC, the AUTO paddle, Time/Status, the horn)
+until you let go.
 
 ---
 
@@ -151,26 +167,15 @@ LED behind the middle of the word tints a character or two in the same colour. A
 
 ### 4.1 SPEED selector (right-hand knob)
 
-The speed selector requests a speed, not a throttle notch. The on-board computer uses power when
-the train is slower than the selected speed and the locomotive brake when it's faster. It never uses
-both at once. It loads up the way an engineer would, aiming for the same gentle pick-up of about
-half a mph per second whatever the train. One throttle notch, a couple of seconds to see what it
-does, and another only if the train is picking up well short of that. If it's picking up far too
-fast, a notch comes off. Otherwise the notch is held. Power comes off as the train arrives at the
-selected speed and isn't put back unless the train drops half a mph below it or is clearly slowing.
-
-The locomotive brake is worked the same way. If the train runs more than half a mph over the
-selected speed, or keeps picking up with the power off (going downhill), one step of brake goes on,
-then another about every second until the train is slowing. If it slows too hard, a step comes off.
-As the train gets back to the selected speed the brake comes off a step at a time, and on a grade
-enough is kept on to hold it there. It can go as far as full locomotive brake. Speed control doesn't
-use the train brake.
+The speed selector asks for a speed, not a throttle notch. The on-board computer applies power when
+the train is slower than the selected speed and the locomotive brake when it's faster, never both at
+once. Speed control doesn't use the train brake.
 
 | Position | What it does |
 |---|---|
 | **Stop** | No power. A moving train is braked to a stand still. |
-| **Coast B** | No power and a light locomotive brake (about 15 psi), so the train gradually stops. On a shove this stretches the slack and eases the train down without a jolt, the same as selecting Coast and setting IND by hand but done one-handed. Above 2 mph, more locomotive brake is added a step at a time to bring the train down to 2 mph. **[typical]** |
-| **Coast** | No power and no brake, but above 2 mph locomotive brake is applied a step at a time to bring the train down to 2 mph, then let off. **[typical]** |
+| **Coast B** | No power and a light locomotive brake (about 15 psi), so the train gradually stops. Above 2 mph it brakes harder to bring the train down to 2 mph. **[typical]** |
+| **Coast** | No power and no brake, but above 2 mph the locomotive brake brings the train down to 2 mph. **[typical]** |
 | **Couple** | About 1 mph, for coupling (job aid 1.6). |
 | **4** | 4 mph. |
 | **7** | 7 mph. **[typical]** |
@@ -209,18 +214,16 @@ show the selected position. Each position asks for a set reduction of the equali
 | **Full** | 26 psi | Full service, for stopping and for securing standing equipment (job aid 1.7, 1.8) |
 | **Charge** | none | Charge the brake pipe after putting cars on air (job aid 8.1). The locomotive brake is held fully applied in this position. |
 
-- Applications are ramped smoothly, about 10 seconds from release to full service. Jumping straight
-  to full service makes Run8 throw an undesired PCS open fault. **[Run8]** Releases are
-  immediate.
+- Applications build up over about 10 seconds from release to full service, because a sudden full
+  service opens Run8's PCS. **[Run8]** Releases are immediate.
 - There's no partial release: stepping back from Full to Med leaves the brakes where they are.
   Only Rel releases them.
 - The locomotive **won't take power unless AUTO is in Rel**.
 - AUTO at Light or more while SPEED is at 4 or higher drags the train brakes (section 8.4).
 - Moving AUTO to Rel after an application starts **brake recovery**. The display shows `CHRG` and
-  the AUTO lamp flashes until the brake pipe has recharged (within 4 psi of the feed valve, with
-  airflow down to 20 CFM). Then you hear the unsolicited **"Brake recovery complete"** message, and
-  only then can the train move again. This is the real system's state-of-charge protection (job aid
-  1.12).
+  the AUTO lamp flashes until the brake pipe has recharged. Then you hear the unsolicited **"Brake
+  recovery complete"** message, and only then can the train move again. This is the real system's
+  state-of-charge protection (job aid 1.12).
 
 ### 4.4 IND: brake override (left-hand knob)
 
@@ -237,8 +240,6 @@ doing.
 
 - The on-board computer never applies less locomotive brake than IND asks for, but speed control or
   Stop may apply more.
-- Each locomotive in Run8 needs a slightly different lever position for the same pressure, so the
-  emulation adjusts the lever until the brake cylinder gauge reads the right pressure. **[Run8]**
 - The locomotive won't take power unless IND is in Rel.
 - IND at Med or Full while SPEED is at 4 or higher drags the locomotive brakes (section 8.4).
 - **Moving IND into Emerg always causes an emergency penalty**, even when standing still. Recovering
@@ -253,34 +254,34 @@ doing.
     - Press it before selecting a speed from Stop (section 7.3).
     - Press it as part of every penalty recovery (section 9).
     - Hold it for more than 2 seconds to sand the rails, for as long as it's held. **[typical]**
-- **PITCH** is on the back of the real unit, so here it's on the emulator strip (section 4.6).
+- **PITCH** hands control of the locomotive to the other operator's OCU. A crew working with two
+  OCUs (A and B) passes control back and forth this way: with the train stopped and both OCUs set
+  the same, the controlling operator presses PITCH, and the other operator "catches" by pressing
+  RSC on their OCU within 10 seconds. PITCH is on the back of the real unit, so
+  here it's on the emulator strip (section 4.6). There's only one OCU in the emulation, so a pitch
+  always fails (section 11).
 - **Time / Status toggle** (both positions are momentary; it springs back to centre)
-    - **Up (Time)**: holding Time for about 2 seconds with the train stopped, until it gives a short
-      beep, starts a **tilt time-out**. It bypasses the tilt (man-down) protection for a short
-      time, for work that needs the OCU tipped past 45 degrees without an emergency penalty. The
-      beep, `TIME` on the display and the talker message work, with or without a link to Run8, but
-      tilt itself isn't simulated (section 8.7).
-    - Push **down (Status)** for a **status report**: a short message on the display, plus a spoken
-      talker message with the locomotive number, OCU letter, current condition, any penalty cause,
-      and brake pipe pressure.
-    - When the OCU is waiting for something (a recovery, brakes charging, a PCS reset), Status tells
-      you what.
+    - **Up (Time)**: held for about 2 seconds with the train stopped, until it gives a short beep,
+      starts a **tilt time-out**, bypassing the tilt (man-down) protection for work that needs the
+      OCU tipped. Tilt itself isn't simulated (section 8.7).
+    - **Down (Status)**: a **status report** on the display and from the talker: the locomotive
+      number, OCU letter, current condition, any penalty cause and brake pipe pressure. When the
+      OCU is waiting for something (a recovery, brakes charging, a PCS reset), Status tells you
+      what.
 - **Bell / Horn toggle**
     - **Up (Bell/Horn ▲)** is momentary: horn and bell while held. It springs back to where it was.
     - **Middle (Bell)**: bell on.
     - **Down (Off)**: bell off.
-    - The bell also rings by itself for about 2 seconds as soon as a stopped train is told to move
-      (a speed of Couple or above, with nothing blocking power), as seen in videos of the real
-      unit. It rings before the train starts rolling, to warn anyone nearby.
-    - Run8's bell is a push button that turns the bell on or off with each press, so moving the toggle
-      presses it as needed to match Run8's bell to the toggle. If you switch the bell in Run8 itself,
-      the toggle leaves it alone until you next move the toggle.
+    - The bell also rings by itself for about 2 seconds when a stopped train is told to move, before
+      it starts rolling.
+    - If you switch the bell in Run8 itself, the toggle leaves it alone until you next move it.
 
 ### 4.6 Emulator strip (rear panel functions)
 
-These functions aren't on the face of the real unit. Move the mouse over the top of the antenna mount in the
-middle of the top edge and they rise on a strip from behind the unit; the strip slides away again a
-moment after the mouse leaves the antenna mount or the strip.
+These functions aren't on the face of the real unit. Move the mouse over the top of the antenna mount
+and they rise on a strip from behind the unit, sliding away again when the mouse leaves. The right
+end of the strip shows the link to Run8: a green dot with speed, BP and BC when Run8 is talking to
+the overlay, an amber dot with "No data from Run8" when it isn't (section 14).
 
 | Button | Function |
 |---|---|
@@ -409,10 +410,8 @@ Not recorded yet, so silent with the recordings (the rest of the message still p
   brake pipe pressure.
 - Railroads other than BNSF, CSX, NS, UP and RER.
 
-The real beeps are undocumented. Both sounds are matched to a real OCU II: the alarm is a steady
-high tone, about 3.6 kHz, with no pulsing, and the tilt time-out beep is a quarter of a second at
-the same pitch. Turn the talker on or
-off from the right-click menu. Volume is in the settings file.
+Both sounds are matched to a real OCU II. Turn the talker on or off, and set its volume, from the
+right-click menu.
 
 ---
 
@@ -507,8 +506,7 @@ Whenever SPEED is off Stop, or the train is moving, the RSC timer runs.
 2. After **10 more seconds**, a **train brake penalty** occurs (job aid 3.2).
 
 Pressing RSC resets the timer. Before the alarm sounds, moving any other control on the OCU resets
-it too (confirmed by an operator in a video of the real unit). Once the alarm is sounding, only RSC
-does. **[typical]**
+it too. Once the alarm is sounding, only RSC does. **[typical]**
 
 ### 8.2 Communication loss
 
@@ -666,9 +664,6 @@ movement first.
 4. After **10 more seconds**, a train brake penalty applies. Brake pipe pressure should drop at
    least 25 psi (watch BP in Run8 or on the overlay's link strip).
 5. Recover train brake from beltpack (section 9.3) and check you hear the recovery message.
-
-The real locomotive revs up during this test. The emulation doesn't, because idling with the
-reverser in neutral has no effect in Run8.
 
 ### 10.3 Miscellaneous tests (job aid 3.4)
 
