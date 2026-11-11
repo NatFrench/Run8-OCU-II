@@ -233,7 +233,7 @@ doing.
 | Position | Effect |
 |---|---|
 | **Rel** | No extra locomotive brake. The normal running position. |
-| **Low** | Light application, 15 psi brake cylinder **[typical]** (used in the running brake test) |
+| **Low** | Light application, 15 psi brake cylinder **[typical]** (used in the OCU running brake test, section 10.5) |
 | **Med** | Medium application, 30 psi **[typical]** |
 | **Full** | Full application, 45 psi **[typical]** |
 | **Emerg** (ES) | **Emergency.** Full locomotive brake, brake pipe vented to zero, emergency penalty. |
@@ -689,6 +689,10 @@ Required after a System reset or when taking charge. The locomotive will move du
 12. Listen for the unsolicited "Brake recovery complete".
 
 ### 10.5 Running brake test (job aid 3.6)
+
+This checks that the locomotive brake responds to the OCU, and is done whenever you take over an
+OCU (job aid 4.1). It isn't the train air brake test, which uses the automatic brake to prove the
+brakes on the cars, under the railroad's air brake rules.
 
 1. Set DIR to Fwd or Rev.
 2. Press RSC, and move SPEED to **4** within 5 seconds.
