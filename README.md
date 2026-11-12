@@ -21,7 +21,8 @@ Ran the real OCU II? Your knowledge is the most valuable thing this project can 
 - **Bugs and ideas:** open an [issue](https://github.com/NatFrench/Run8-OCU-II/issues/new/choose).
 - **Questions, chat and stories about the real unit:**
   [Discussions](https://github.com/NatFrench/Run8-OCU-II/discussions).
-- **To talk privately:** message me on Discord, **n_french**.
+- **To talk privately:** message me on Discord, **n_french**, or email
+  [nathanmfrenc@gmail.com](mailto:nathanmfrenc@gmail.com).
 
 Please keep feedback to what an operator sees, hears and does. Don't post or send radio, protocol,
 addressing or pairing details of real equipment.
