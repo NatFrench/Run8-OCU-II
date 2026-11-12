@@ -24,7 +24,7 @@ Ran the real OCU II? Your knowledge is the most valuable thing this project can 
 - **To talk privately:** message me on Discord, **n_french**, or email
   [nathanmfrenc@gmail.com](mailto:nathanmfrenc@gmail.com).
 
-Please keep feedback to what an operator sees, hears and does. Don't post or send radio, protocol,
+Please keep feedback to what an operator sees, hears and does. Don't post radio, protocol,
 addressing or pairing details of real equipment.
 
 ## Scope and safety
