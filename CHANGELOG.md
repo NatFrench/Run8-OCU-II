@@ -4,8 +4,8 @@
 
 ## v2.0-beta2 (22 November 2026)
 
-- Talker messages follow Christian Currao's soundboard layout more closely: railroad and engine
-  number, OCU letter (A, B or AnB), the body phrases, then pullback protection off and Out.
+- Talker messages follow the real unit more closely: railroad and engine number, OCU letter (A, B
+  or AnB), the body phrases, then pullback protection off and Out.
 - Status when ready: "Consist ready", pullback, then "Brake pipe fully charged" when the pipe is
   charged. Under a penalty or while waiting, Status still names that condition.
 - Brake recovery complete announces "Consist ready", then pullback, then "Brake pipe fully charged".
