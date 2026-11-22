@@ -22,6 +22,8 @@ public sealed record LocoCommand
 {
     public int Throttle { get; init; }
     public byte Indy { get; init; }
+    /// <summary>Holds Run8's bail-off button, releasing the locomotive brake the train brake applied.</summary>
+    public bool IndyBailoff { get; init; }
     public byte TrainBrake { get; init; }
     public ReverserState Reverser { get; init; } = ReverserState.Neutral;
     public bool Bell { get; init; }
@@ -212,7 +214,8 @@ public sealed class RclController
             // _tiltBypassUntil = _clock + _s.TiltBypassSeconds;
             Sound?.Invoke(OcuSound.ShortBeep);
             ShowMessage("TIME", 2);
-            Talker?.Invoke($"Tilt timeout from {_s.OcuLetter}.");
+            // Soundboard: ID, TiltTimeoutFrom, OCU, RecoverEMG, Pullback, Out.
+            Speak($"Tilt timeout from {SpokenOcu()}", "Recover emergency from beltpack");
         }
 
         // TILT DISABLED for the v1.2 play-test build. Uncomment this block, the tilt fields, the
@@ -234,14 +237,30 @@ public sealed class RclController
         //     _tiltElapsed = 0;
         // }
 
-        if (input.Ind == IndBrake.Emerg && prev.Ind != IndBrake.Emerg && Penalty != PenaltyKind.Emergency)
+        // Ignore Emerg during post-recovery charging so the recovery handshake doesn't start a
+        // fresh "operator requested emergency" talker over the recovery messages.
+        if (input.Ind == IndBrake.Emerg && prev.Ind != IndBrake.Emerg && Penalty != PenaltyKind.Emergency
+            && !BrakeRecoveryPending)
             TriggerPenalty(PenaltyKind.Emergency, "Operator requested emergency");
+
+        // AUTO Full is a normal train-brake application (job aid 5.5 release afterwards), not a
+        // penalty. Skip while any penalty is active (recovery needs Full) or the pipe is charging.
+        if (input.Auto == AutoBrake.Full && prev.Auto != AutoBrake.Full
+            && Penalty == PenaltyKind.None && !BrakeRecoveryPending)
+            Speak("Operator requested train brake", "Recover train brake from beltpack");
 
         // An open PCS means an emergency application, whatever caused it. Once recovered, it stays
         // open until the brake pipe charges, so only a fresh opening counts while charging.
+        // A dump that leaves the pipe low (break-in-two) is announced as low brake pipe pressure
+        // with recover-emergency, per Christian's soundboard; other PCS openings keep "P C S open".
         bool pcsOpen = t is not null && t.LocoStatus1.HasFlag(LocoStatus1.PcsOpen);
         if (pcsOpen && Penalty != PenaltyKind.Emergency && (!_pcsWasOpen || !BrakeRecoveryPending))
-            TriggerPenalty(PenaltyKind.Emergency, "P C S open");
+        {
+            string reason = t is not null && t.BrakePipePsi < _s.LowBrakePipePsi
+                ? "Low brake pipe pressure"
+                : "P C S open";
+            TriggerPenalty(PenaltyKind.Emergency, reason);
+        }
         _pcsWasOpen = pcsOpen;
 
         // The emergency penalty centres the reverser and holds the train brake in emergency,
@@ -257,7 +276,7 @@ public sealed class RclController
         if (Penalty == PenaltyKind.Emergency && pcsOpen && pcsReady && !_pcsReadyAnnounced)
         {
             _pcsReadyAnnounced = true;
-            Talker?.Invoke("P C S reset. Recover emergency from beltpack.");
+            Speak("P C S reset", "Recover emergency from beltpack");
         }
 
         HandleRecovery(input, prev, rscPressed, stopped, pcsReady);
@@ -278,7 +297,11 @@ public sealed class RclController
             };
             _recoveringFrom = PenaltyKind.None;
             ShowMessage($"{kind}BRAKE RECOVERY COMPLETE", 12);
-            Talker?.Invoke("Brake recovery complete.");
+            // Christian: ID, brake recovery complete, consist ready, pullback off,
+            // brake pipe fully charged, Out.
+            Talker?.Invoke(FormatAnnouncement(
+                ["Brake recovery complete", "Consist ready"],
+                afterPullback: ["Brake pipe fully charged"]));
         }
 
         if (input.Auto != AutoBrake.Charge)
@@ -290,7 +313,7 @@ public sealed class RclController
             && t.AirflowCfm <= _s.RecoveryMaxAirflowCfm)
         {
             _chargeAnnounced = true;
-            Talker?.Invoke("Brake pipe fully charged.");
+            Speak("Brake pipe fully charged");
         }
 
         // Direction of movement protection: the reverser only changes while stopped, and moving
@@ -323,7 +346,7 @@ public sealed class RclController
         {
             string name = dragging == "IND" ? "Independent" : "Train";
             if (_dragElapsed == 0)
-                Talker?.Invoke($"{name} brakes dragging.");
+                Speak($"{name} brakes dragging");
             _dragElapsed += dt;
             if (_dragElapsed >= _s.DraggingBrakeSeconds)
             {
@@ -353,7 +376,7 @@ public sealed class RclController
         else if (!_slipAnnounced && _slipElapsed >= _s.SevereWheelSlipSeconds)
         {
             _slipAnnounced = true;
-            Talker?.Invoke("Severe wheel slip.");
+            Speak("Severe wheel slip");
         }
 
         bool tryingToCouple = input.Speed == SpeedSelect.Couple && MotionEnabled && !powerBlocked && stopped;
@@ -364,7 +387,8 @@ public sealed class RclController
         {
             _stallWarned = true;
             ShowMessage("CAUTION TRAC MTR STALL", 10);
-            Talker?.Invoke("Locomotive movement failure.");
+            // Soundboard: ID, LocoMoveFail, RecoverService, Pullback, Out.
+            Speak("Locomotive movement failure", "Recover service from beltpack");
         }
 
         if (input.HeadlightBright != prev.HeadlightBright)
@@ -420,6 +444,10 @@ public sealed class RclController
         {
             Throttle = notch,
             Indy = indy,
+            // Job aid 3.5: at Min the locomotive brakes stay released. Run8 needs the button held
+            // for about 10 seconds to bail them fully, so it's held for as long as Min is, unless
+            // IND or the speed control wants locomotive brake.
+            IndyBailoff = demand == TrainBrakeDemand.Min && indy == 0,
             TrainBrake = trainBrake,
             Reverser = Penalty == PenaltyKind.Emergency ? ReverserState.Neutral : ActiveReverser,
             Bell = input.BellHorn != BellHorn.Off || _clock < _autoBellUntil,
@@ -439,7 +467,7 @@ public sealed class RclController
         if (pitchPressed)
         {
             ShowMessage("PITCH FAILED", 3);
-            Talker?.Invoke("Pitch failed. No receiving O C U.");
+            Speak("Pitch failed. No receiving O C U");
         }
 
         Alarm = tiltAlarm || rscWarning ? AlarmPattern.Continuous : AlarmPattern.None;
@@ -496,7 +524,7 @@ public sealed class RclController
         _recoveringFrom = PenaltyKind.None;
         _speed.Reset();
         ShowMessage(display ?? PenaltyCode(kind), display is null ? 4 : 10);
-        Talker?.Invoke($"{reason}. {RecoverPhrase(kind)}.");
+        Speak(reason, RecoverPhrase(kind));
     }
 
     private void ClearPenalty(bool recoverBrakes)
@@ -555,6 +583,10 @@ public sealed class RclController
 
     private (string Short, string Spoken) BuildStatus(OcuInput input, Run8Telemetry? t)
     {
+        bool pipeCharged = t is not null
+            && t.BrakePipePsi >= t.FeedValvePsi - _s.RecoveryBrakePipeTolerancePsi
+            && t.AirflowCfm <= _s.RecoveryMaxAirflowCfm;
+
         string primary;
         if (PcsResetRemaining > 0)
             primary = $"P C S reset in {Math.Ceiling(PcsResetRemaining)} seconds";
@@ -575,15 +607,53 @@ public sealed class RclController
         else if (input.Auto != AutoBrake.Rel)
             primary = "Release train brake from beltpack";
         else
-            primary = "OK";
+            primary = "Consist ready";
 
-        string spoken = $"{SpokenUnit()}, O C U {_s.OcuLetter}. {primary}.";
+        // Christian's STATUS button: ID, OCU, Consist ready, pullback, BP fully charged (when charged), Out.
+        if (primary == "Consist ready")
+        {
+            string spoken = FormatAnnouncement(
+                ["Consist ready"],
+                afterPullback: pipeCharged ? ["Brake pipe fully charged"] : null);
+            return ("CONSIST READY", spoken);
+        }
+
+        var body = new List<string> { primary };
         if (Penalty != PenaltyKind.None)
-            spoken += $" Cause: {PenaltyReason}.";
-        if (t is not null)
-            spoken += $" Brake pipe {t.BrakePipePsi} P S I.";
-        return (primary.ToUpperInvariant().Replace("P C S", "PCS"), spoken);
+            body.Add($"Cause: {PenaltyReason}");
+        return (primary.ToUpperInvariant().Replace("P C S", "PCS"), FormatAnnouncement(body.ToArray()));
     }
+
+    /// <summary>
+    /// Builds a full talker transmission: railroad and engine, OCU letter, the body phrases, then
+    /// pullback protection off and "Out" (Christian's soundboard layout; pullback always off until
+    /// that feature exists in Run8). Phrases in <paramref name="afterPullback"/> sit between
+    /// pullback and Out (recovery complete puts "brake pipe fully charged" there).
+    /// </summary>
+    public string FormatAnnouncement(string[] sentences, string[]? afterPullback = null)
+    {
+        var parts = new List<string> { $"{SpokenUnit()}, O C U {SpokenOcu()}" };
+        foreach (var raw in sentences)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                continue;
+            parts.Add(raw.Trim().TrimEnd('.'));
+        }
+        parts.Add("Pullback protection off");
+        if (afterPullback is not null)
+        {
+            foreach (var raw in afterPullback)
+            {
+                if (string.IsNullOrWhiteSpace(raw))
+                    continue;
+                parts.Add(raw.Trim().TrimEnd('.'));
+            }
+        }
+        parts.Add("Out");
+        return string.Join(". ", parts) + ".";
+    }
+
+    private void Speak(params string[] sentences) => Talker?.Invoke(FormatAnnouncement(sentences));
 
     /// <summary>
     /// The railroad's initials and the unit number spoken a character at a time, as the talker
@@ -597,6 +667,17 @@ public sealed class RclController
             : railroad.All(char.IsUpper) ? Spell(railroad)
             : railroad;
         return $"{name} {Spell(LocomotiveId)}";
+    }
+
+    /// <summary>Configured OCU identity for the talker: A, B, or AnB.</summary>
+    private string SpokenOcu()
+    {
+        string o = _s.OcuLetter.Trim();
+        if (o.Equals("AnB", StringComparison.OrdinalIgnoreCase))
+            return "AnB";
+        if (o.Length > 0)
+            return char.ToUpperInvariant(o[0]).ToString();
+        return "A";
     }
 
     private string ChooseDisplay(double speed, bool linkOk, bool rscWarning, bool tiltAlarm, double tiltRemaining)

@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Skin\*.png;Skin\skin.json;app.ico" />
+    <Resource Include="Skin\*.png;Skin\skin.json;taskbar.ico" />
   </ItemGroup>
 
   <!-- Talker recordings, kept outside the repository until their licence is settled. -->

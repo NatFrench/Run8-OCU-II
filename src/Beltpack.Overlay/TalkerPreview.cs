@@ -12,11 +12,12 @@ public static class TalkerPreview
 {
     private static readonly string[] Messages =
     [
-        "Locomotive in remote mode.",
-        "Operator requested emergency. Recover emergency from beltpack.",
-        "Reset safety control timeout. Recover train brake from beltpack.",
-        "B N S F 4 0 2 6, O C U A. Low brake pipe pressure. Brake pipe 52 P S I.",
-        "Locomotive 1 2 3 4, O C U B. Recover service from beltpack. Cause: Communication interrupted.",
+        "B N S F 4 0 2 6, O C U A. Locomotive in remote mode. Pullback protection off. Out.",
+        "B N S F 4 0 2 6, O C U A. Operator requested emergency. Recover emergency from beltpack. Pullback protection off. Out.",
+        "B N S F 4 0 2 6, O C U A. Brake recovery complete. Consist ready. Pullback protection off. Brake pipe fully charged. Out.",
+        "B N S F 4 0 2 6, O C U A. Consist ready. Pullback protection off. Brake pipe fully charged. Out.",
+        "B N S F 4 0 2 6, O C U A. Low brake pipe pressure. Pullback protection off. Out.",
+        "Locomotive 1 2 3 4, O C U B. Communication interrupted. Recover train brake from beltpack. Pullback protection off. Out.",
     ];
 
     /// <summary>"--say &lt;text&gt; &lt;log file&gt;": speaks one message through the live talker and logs what happened.</summary>
@@ -68,7 +69,11 @@ public static class TalkerPreview
         report.Add("Clip lengths, as recorded and trimmed:");
         foreach (var name in source.Names)
         {
-            using var reader = new Mp3FileReader(new MemoryStream(source.Read(name)!));
+            byte[] data = source.Read(name)!;
+            using var reader = data.Length >= 4 && data[0] == (byte)'R' && data[1] == (byte)'I'
+                && data[2] == (byte)'F' && data[3] == (byte)'F'
+                ? (WaveStream)new WaveFileReader(new MemoryStream(data))
+                : new Mp3FileReader(new MemoryStream(data));
             double trimmed = voice.Render([new TalkerClip(name, false)]).Length / 44100.0 - 0.06;
             report.Add($"    {name,-40} {reader.TotalTime.TotalSeconds,5:0.00} s  {trimmed,5:0.00} s");
         }

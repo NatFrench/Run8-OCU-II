@@ -27,8 +27,11 @@ public sealed class CommandSender
         _refreshSeconds = refreshSeconds;
     }
 
+    /// <summary>Lets go of any held button and starts afresh, for a changeover or shutdown.</summary>
     public void Reset()
     {
+        if (_last.GetValueOrDefault(Run8Message.IndyBailoff) == 1)
+            _send(Run8Message.IndyBailoff, 0);
         _last.Clear();
         _bellWanted = null;
         if (_bellPressLeft > 0)
@@ -36,6 +39,17 @@ public sealed class CommandSender
             _bellPressLeft = 0;
             _send(Run8Message.Bell, 0);
         }
+    }
+
+    /// <summary>
+    /// Pushes train-brake release into Run8. Taking or dropping a locomotive there often leaves a
+    /// minimum automatic application that keeps the brake pipe from charging; the OCU needs a
+    /// release on the wire even before BELTPACK is sending every lever.
+    /// </summary>
+    public void ForceTrainBrakeRelease()
+    {
+        _last[Run8Message.TrainBrakeLever] = 0;
+        _send(Run8Message.TrainBrakeLever, 0);
     }
 
     public void Send(LocoCommand c, double dt, Run8Telemetry? telemetry = null)
@@ -48,6 +62,7 @@ public sealed class CommandSender
 
         Put(Run8Message.ThrottleLever, (byte)c.Throttle, refresh);
         Put(Run8Message.IndyBrakeLever, c.Indy, refresh);
+        Put(Run8Message.IndyBailoff, Bool(c.IndyBailoff), false);
         Put(Run8Message.TrainBrakeLever, c.TrainBrake, refresh);
         Put(Run8Message.ReverserLever, c.Reverser switch
         {

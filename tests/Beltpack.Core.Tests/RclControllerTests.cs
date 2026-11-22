@@ -83,6 +83,8 @@ public class RclControllerTests
 
         h.Press(i => i with { Status = true }, i => i with { Status = false });
         Assert.StartsWith("Locomotive 0 0 0 0,", h.Talk[^1]);
+        Assert.Contains("Consist ready.", h.Talk[^1]);
+        Assert.EndsWith("Brake pipe fully charged. Out.", h.Talk[^1]);
 
         h.Controller.ControllingUnit = "8081";
         h.Press(i => i with { Status = true }, i => i with { Status = false });
@@ -90,7 +92,10 @@ public class RclControllerTests
 
         h.Settings.Railroad = "BNSF";
         h.Press(i => i with { Status = true }, i => i with { Status = false });
-        Assert.StartsWith("B N S F 8 0 8 1,", h.Talk[^1]);
+        Assert.StartsWith("B N S F 8 0 8 1, O C U A.", h.Talk[^1]);
+        Assert.Contains("Consist ready.", h.Talk[^1]);
+        Assert.Contains("Pullback protection off.", h.Talk[^1]);
+        Assert.EndsWith("Brake pipe fully charged. Out.", h.Talk[^1]);
     }
 
     [Fact]
@@ -102,12 +107,102 @@ public class RclControllerTests
         h.Set(i => i with { Speed = SpeedSelect.Four });
         h.Run(15);
         h.Set(i => i with { Dir = Direction.Rev });
-        Assert.StartsWith("Illegal reverser change.", h.Talk[^1]);
+        Assert.Contains("Illegal reverser change.", h.Talk[^1]);
+        Assert.Contains("Recover train brake from beltpack.", h.Talk[^1]);
+        Assert.EndsWith("Pullback protection off. Out.", h.Talk[^1]);
 
         var e = new Harness();
         e.ReadyToMove();
         e.Set(i => i with { Ind = IndBrake.Emerg });
-        Assert.StartsWith("Operator requested emergency.", e.Talk[^1]);
+        Assert.Contains("Operator requested emergency.", e.Talk[^1]);
+        Assert.Contains("Recover emergency from beltpack.", e.Talk[^1]);
+        Assert.EndsWith("Pullback protection off. Out.", e.Talk[^1]);
+    }
+
+    [Fact]
+    public void TalkerAnnouncementsStartWithTheUnitAndEndWithOut()
+    {
+        var h = new Harness();
+        h.Settings.Railroad = "BNSF";
+        h.Controller.ControllingUnit = "4026";
+        h.ReadyToMove();
+        h.Set(i => i with { Ind = IndBrake.Emerg });
+
+        string talk = h.Talk[^1];
+        Assert.StartsWith("B N S F 4 0 2 6, O C U A.", talk);
+        Assert.EndsWith("Pullback protection off. Out.", talk);
+    }
+
+    [Fact]
+    public void BrakeRecoveryCompleteAlsoSaysConsistReady()
+    {
+        var h = new Harness();
+        h.ReadyToMove();
+        // ReadyToMove recovers the power-up train brake; the last recovery talk should match Christian.
+        string? recovery = h.Talk.LastOrDefault(m => m.Contains("Brake recovery complete"));
+        Assert.NotNull(recovery);
+        Assert.Contains("Consist ready.", recovery);
+        Assert.Contains("Pullback protection off.", recovery);
+        Assert.EndsWith("Brake pipe fully charged. Out.", recovery);
+    }
+
+    [Fact]
+    public void UndesiredBrakePipeDumpAnnouncesLowBrakePipePressure()
+    {
+        var h = new Harness();
+        h.ReadyToMove();
+        h.Talk.Clear();
+
+        h.Loco.BrakePipe = 20;
+        h.Loco.Equalizing = 20;
+        h.Loco.PcsOpen = true;
+        h.Run(0.2);
+
+        Assert.Equal(PenaltyKind.Emergency, h.Controller.Penalty);
+        Assert.Contains("Low brake pipe pressure.", h.Talk[^1]);
+        Assert.Contains("Recover emergency from beltpack.", h.Talk[^1]);
+        Assert.EndsWith("Pullback protection off. Out.", h.Talk[^1]);
+    }
+
+    [Fact]
+    public void AutoFullAnnouncesOperatorRequestedTrainBrakeWithoutAPenalty()
+    {
+        var h = new Harness();
+        h.ReadyToMove();
+        h.Talk.Clear();
+        h.Set(i => i with { Auto = AutoBrake.Full });
+
+        Assert.Equal(PenaltyKind.None, h.Controller.Penalty);
+        Assert.Contains("Operator requested train brake.", h.Talk[^1]);
+        Assert.Contains("Recover train brake from beltpack.", h.Talk[^1]);
+        Assert.EndsWith("Pullback protection off. Out.", h.Talk[^1]);
+    }
+
+    [Fact]
+    public void RecoveryControlMovesDoNotRetriggerOperatorRequestedTalker()
+    {
+        var h = new Harness();
+        h.ReadyToMove();
+        h.Set(i => i with { Ind = IndBrake.Emerg });
+        Assert.Equal(PenaltyKind.Emergency, h.Controller.Penalty);
+
+        // Emergency recovery: ES → RSC → Rel (after wait / PCS).
+        h.Set(i => i with { Ind = IndBrake.Emerg, Auto = AutoBrake.Rel, Speed = SpeedSelect.Stop });
+        h.Run(h.Settings.EmergencyMinimumSeconds);
+        h.Loco.PcsOpen = false;
+        h.Talk.Clear();
+        h.PressRsc();
+        h.Set(i => i with { Ind = IndBrake.Rel });
+        Assert.True(h.Controller.BrakeRecoveryPending);
+
+        // Bumping Full or Emerg again while CHRG must not restart those talker lines.
+        h.Talk.Clear();
+        h.Set(i => i with { Auto = AutoBrake.Full });
+        Assert.DoesNotContain(h.Talk, m => m.Contains("Operator requested train brake"));
+        h.Set(i => i with { Auto = AutoBrake.Rel, Ind = IndBrake.Emerg });
+        Assert.DoesNotContain(h.Talk, m => m.Contains("Operator requested emergency"));
+        Assert.Equal(PenaltyKind.None, h.Controller.Penalty);
+        Assert.True(h.Controller.BrakeRecoveryPending);
     }
 
     [Fact]
@@ -115,12 +210,14 @@ public class RclControllerTests
     {
         var h = new Harness();
         h.ReadyToMove();
+        h.Talk.Clear();
         h.Loco.BrakePipe = 60;
         h.Set(i => i with { Dir = Direction.Neutral, Auto = AutoBrake.Charge });
         Assert.DoesNotContain(h.Talk, m => m.Contains("Brake pipe fully charged"));
 
         h.Run(30);
-        Assert.Contains("Brake pipe fully charged.", h.Talk);
+        Assert.Contains(h.Talk, m => m.Contains("Brake pipe fully charged."));
+        Assert.Contains(h.Talk, m => m.Contains("Brake pipe fully charged.") && m.EndsWith("Pullback protection off. Out."));
     }
 
     [Fact]
@@ -511,6 +608,29 @@ public class RclControllerTests
         Assert.True(h.Controller.Command.Sander);
         h.Set(i => i with { Rsc = false });
         Assert.False(h.Controller.Command.Sander);
+    }
+
+    [Fact]
+    public void AutoMinBailsOffTheLocomotiveBrakeUnlessIndWantsIt()
+    {
+        var h = new Harness();
+        h.ReadyToMove();
+        h.PressRsc();
+        h.Set(i => i with { Speed = SpeedSelect.Couple });
+        h.Run(5);
+        Assert.False(h.Controller.Command.IndyBailoff);
+
+        h.Set(i => i with { Auto = AutoBrake.Min });
+        h.Run(12);
+        Assert.True(h.Controller.Command.IndyBailoff);
+
+        h.Set(i => i with { Ind = IndBrake.Low });
+        Assert.False(h.Controller.Command.IndyBailoff);
+        h.Set(i => i with { Ind = IndBrake.Rel });
+        Assert.True(h.Controller.Command.IndyBailoff);
+
+        h.Set(i => i with { Auto = AutoBrake.Light });
+        Assert.False(h.Controller.Command.IndyBailoff);
     }
 
     [Theory]

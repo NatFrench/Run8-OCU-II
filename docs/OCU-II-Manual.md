@@ -122,7 +122,8 @@ strip does the same job:
 - **CAB: BELTPACK:** the overlay takes over the throttle, both brakes, the reverser, bell, horn,
   sand and headlights, and turns off Run8's slow speed control (Ctrl+C).
 
-The talker announces each changeover.
+The talker announces changeover to BELTPACK ("Locomotive in remote mode"). Changeover to MANUAL
+is silent.
 
 ### 2.4 First run: getting a train moving
 
@@ -208,9 +209,9 @@ show the selected position. Each position asks for a set reduction of the equali
 | Position | Reduction | Use |
 |---|---|---|
 | **Rel** | none | Release the train brakes. The normal running position. |
-| **Min** | 7 psi | Minimum application, for example stretching or conditioning brake shoes (job aid 1.13) |
-| **Light** | 12 psi **[typical]** | |
-| **Med** | 18 psi **[typical]** | |
+| **Min** | 7 psi | Minimum application, for example stretching or conditioning brake shoes (job aid 1.13). Only the cars brake: the locomotive brake stays released (job aid 3.5). |
+| **Light** | 12 psi **[typical]** | The locomotive brakes along with the cars **[guess]**. |
+| **Med** | 18 psi **[typical]** | The locomotive brakes along with the cars **[guess]**. |
 | **Full** | 26 psi | Full service, for stopping and for securing standing equipment (job aid 1.7, 1.8) |
 | **Charge** | none | Charge the brake pipe after putting cars on air (job aid 8.1). The locomotive brake is held fully applied in this position. |
 
@@ -264,10 +265,11 @@ doing.
     - **Up (Time)**: held for about 2 seconds with the train stopped, until it gives a short beep,
       starts a **tilt time-out**, bypassing the tilt (man-down) protection for work that needs the
       OCU tipped. Tilt itself isn't simulated (section 8.7).
-    - **Down (Status)**: a **status report** on the display and from the talker: the locomotive
-      number, OCU letter, current condition, any penalty cause and brake pipe pressure. When the
-      OCU is waiting for something (a recovery, brakes charging, a PCS reset), Status tells you
-      what.
+    - **Down (Status)**: a **status report** on the display and from the talker. When the consist is
+      ready: railroad, engine number, OCU letter (A, B or AnB), "Consist ready", pullback
+      protection status, then "Brake pipe fully charged" if the pipe is charged, and Out. When the
+      OCU is waiting for something (a recovery, brakes charging, a PCS reset) or under a penalty,
+      Status names that condition instead.
 - **Bell / Horn toggle**
     - **Up (Bell/Horn ▲)** is momentary: horn and bell while held. It springs back to where it was.
     - **Middle (Bell)**: bell on.
@@ -366,7 +368,9 @@ setting are a **[guess]**.
 ## 6. Sounds and the talker
 
 The OCU has a small beeper. The locomotive also has a **talker**, a voice that broadcasts on the
-crew's portable radios. Your PC speakers stand in for both.
+crew's portable radios. Your PC speakers stand in for both. Because the talker is the locomotive's
+voice, it only speaks while Run8 has a train sending data to the overlay; without one (`NO LINK`)
+it's silent.
 
 The talker plays recordings by Christian Currao (SketchyBlueFlag), from `talker.pak` beside the
 program. Messages that haven't been recorded yet are silent; the list is below. Without
@@ -382,33 +386,48 @@ and the talker tell you instead.
 | Steady alarm | RSC warning: press RSC within 10 seconds. The tilt alarm sounds the same. |
 | Short beep | Tilt time-out accepted (Time held for about 2 seconds, train stopped). |
 
+Every talker transmission starts with the railroad and engine number plus the OCU letter (A, B or
+AnB), and ends with **"Pullback protection off"** then **"Out"**. Pullback is always announced as
+off for now (the protection system isn't simulated yet). Choose the railroad with right-click,
+**Railroad**; the unit number is read a digit at a time.
+
 Talker messages include:
 
-- "Locomotive in remote mode" (changeover to BELTPACK) and "Changeover to manual".
+- Putting the engine in remote (changeover to BELTPACK): "Locomotive in remote mode". Changeover
+  to MANUAL is silent (the emulator doesn't apply a post-changeover emergency recovery).
 - The penalty cause followed by its recovery instruction, for example "Reset safety control
   timeout. Recover train brake from beltpack." The causes include "Operator requested emergency",
   "Illegal reverser change" and "Communication interrupted".
-- Unsolicited "Brake recovery complete", and "Brake pipe fully charged" when the brake pipe has
-  charged with AUTO in Charge.
+- Moving AUTO to **Full**: "Operator requested train brake" then "Recover train brake from
+  beltpack". This is not a penalty; release is still section 9.4 (Stop, AUTO to Rel, wait for
+  brake recovery complete).
+- Unsolicited "Brake recovery complete", then "Consist ready", pullback off, then "Brake pipe fully
+  charged" and Out. Separately, "Brake pipe fully charged" when the pipe has charged with AUTO in
+  Charge.
+- An undesired brake-pipe dump (PCS open with the pipe already low, e.g. a break-in-two): "Low
+  brake pipe pressure" then "Recover emergency from beltpack".
 - "Severe wheel slip" when wheel slip lasts more than 3 seconds **[guess]**, and "Locomotive
-  movement failure" when Couple doesn't get the train moving.
+  movement failure" then "Recover service from beltpack" when Couple doesn't get the train moving.
 - "Independent brakes dragging" and "Train brakes dragging".
-- Spoken status reports (Status button). The unit number is read a digit at a time, after the
-  railroad's initials if a railroad is chosen (for example "B N S F 4 0 2 6"), otherwise after
-  "Locomotive". Choose it with right-click, **Railroad**.
+- Status button when ready: "Consist ready", pullback, then "Brake pipe fully charged" when the
+  pipe is charged. Status under a penalty or while waiting (charging, PCS reset, etc.) names that
+  condition instead.
 - "P C S reset. Recover emergency from beltpack."
 - "Pitch failed".
+- Tilt time-out: "Tilt timeout from" the OCU letter, then "Recover emergency from beltpack".
 
 Not recorded yet, so silent with the recordings (the rest of the message still plays):
 
 - "Changeover to manual", "Pitch failed. No receiving O C U" and "P C S reset".
 - The causes "System reset", "Reset safety control timeout" and "P C S open", and "Independent
   brakes dragging" and "Train brakes dragging".
-- In status reports: "Locomotive" (when `Railroad` isn't set), "O C U", "Cause", "OK", "Brake
+- In non-ready status reports: "Locomotive" (when `Railroad` isn't set), "O C U", "Cause", "Brake
   charging in progress", "Brake recovery in progress", "Low main reservoir pressure", "Release
-  train brake from beltpack", "No communication", "P C S open", the PCS reset countdown and the
-  brake pipe pressure.
+  train brake from beltpack", "No communication", "P C S open" and the PCS reset countdown.
 - Railroads other than BNSF, CSX, NS, UP and RER.
+
+(The framing clips — railroad, engine digits, OCU letter, pullback protection off, and Out — play
+on every transmission that has them.)
 
 Both sounds are matched to a real OCU II. Turn the talker on or off, and set its volume, from the
 right-click menu.
@@ -461,7 +480,8 @@ Once moving, you can change between speeds freely without RSC.
   need IND on a yard grade.
 - **To stop:** move SPEED to **Stop**. Power comes off, the locomotive brake slows the train at about 1 mph per second, and once it's stopped the full locomotive brake applies.
 - **With cars:** the locomotive brake alone may not hold a heavy train. Use AUTO (train brake) to
-  stop it: Min to Full as needed. Then put SPEED to Stop, return AUTO to Rel, and wait for "Brake
+  stop it: Min to Full as needed. Moving AUTO to Full also gets the talker message "Operator
+  requested train brake." Then put SPEED to Stop, return AUTO to Rel, and wait for "Brake
   recovery complete" before moving again (job aid 5.5).
 
 ### 7.5 Coupling (job aid 1.6)
@@ -681,8 +701,7 @@ Required after a System reset or when taking charge. The locomotive will move du
 5. Check the locomotive moves in the selected direction and all brakes release.
 6. Set IND to **Low**. Check the brakes apply.
 7. Set IND to **Rel**. Check the brakes release.
-8. Move AUTO to **Min**. On the real system, brakes remain released. In Run8, a light engine may
-   show a small application.
+8. Move AUTO to **Min**. Check the brakes remain released.
 9. Move AUTO to **Full**. Check the brakes apply and the locomotive stops.
 10. Move SPEED to **Stop**.
 11. Move AUTO to **Rel**.
@@ -800,7 +819,6 @@ for working out what happened after an unexpected penalty.
 | Tilt sensor and tilt time-out (Time) | Built in | Time gives the beep and message; tilt isn't simulated |
 | Emergency recovery wait | Undocumented | 60 seconds plus Run8's 2-minute PCS reset |
 | RSC test revving the engine | Engine revs in neutral | No rev |
-| AUTO Min on a light engine | Locomotive brakes stay released | Run8 may apply a little locomotive brake |
 | Battery, strobe lights, ATT'N button, snow brake | Present | Not simulated |
 | Speed control | On-board computer, railroad-tuned | Tuned against Run8 telemetry on light engines. Heavy trains may behave differently. |
 
@@ -814,10 +832,10 @@ for working out what happened after an unexpected penalty.
 | "Port 18889 is in use by another program" | Another tool (or a second copy of the overlay) is listening. Close it, then right-click and choose **Reload settings**. |
 | Selected a speed but nothing happens, SPEED lamp flashing | RSC wasn't pressed within 5 seconds before selecting a speed (`SPEED SELECT WITHOUT RSC`), or power is blocked (AUTO or IND not in Rel, DIR in N, brakes charging). See section 8.5. |
 | Display stuck on `RECOVER EMG BRK` | Follow section 9.2 exactly, in order: Stop, AUTO Rel (not Charge), IND Emerg, RSC, then IND Rel within 3 seconds. Wait at least 60 seconds after the emergency, and for any `PCS` countdown to finish, before pressing RSC. |
-| Display shows `CHRG` for a long time | The brake pipe is still charging. Check Run8's main reservoir and that the brake pipe isn't open somewhere (angle cocks, broken train line). |
+| Display shows `CHRG` for a long time | The brake pipe is still charging. Check Run8's main reservoir and that the brake pipe isn't open somewhere (angle cocks, broken train line). Taking a locomotive in Run8 often leaves a minimum automatic brake on; the overlay releases it when the link comes up so the pipe can charge. |
 | Locomotive doesn't respond at all | CAB must be in **BELTPACK**. In MANUAL, the overlay doesn't send anything. |
 | Train won't reach the selected speed | Run8's slow speed control may be on (changeover to BELTPACK again turns it off). Check traction motors and that the hand brake is off. |
-| The talker is silent | Right-click and check **Talker voice** is ticked, and try **Talker volume**, **100%**. Some messages aren't recorded yet and are always silent (section 6). Without `talker.pak` beside the program, Windows needs an installed speech voice. |
+| The talker is silent | It only speaks while Run8 has a train sending data (the link strip shows speed and pressures). Right-click and check **Talker voice** is ticked, and try **Talker volume**, **100%**. Some messages aren't recorded yet and are always silent (section 6). Without `talker.pak` beside the program, Windows needs an installed speech voice. |
 
 ---
 

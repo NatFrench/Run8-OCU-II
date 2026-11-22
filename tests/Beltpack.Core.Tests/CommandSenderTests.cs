@@ -49,6 +49,36 @@ public class CommandSenderTests
         Assert.Equal(2, sent.Count(s => s == (Run8Message.SlowSpeedOnOff, 0)));
     }
 
+    [Fact]
+    public void ForceTrainBrakeReleaseSendsZeroEvenIfAlreadyReleased()
+    {
+        var sent = new List<(Run8Message Type, byte Value)>();
+        var sender = new CommandSender((t, v) => sent.Add((t, v)), refreshSeconds: 1.0);
+        sender.Send(new LocoCommand { TrainBrake = 0 }, 0.1);
+        sent.Clear();
+
+        sender.ForceTrainBrakeRelease();
+
+        Assert.Equal([(Run8Message.TrainBrakeLever, (byte)0)], sent);
+    }
+
+    [Fact]
+    public void BailOffIsHeldUntilReleasedOrReset()
+    {
+        var sent = new List<(Run8Message Type, byte Value)>();
+        var sender = new CommandSender((t, v) => sent.Add((t, v)), refreshSeconds: 0.5);
+
+        sender.Send(new LocoCommand { IndyBailoff = true }, 0.1);
+        sender.Send(new LocoCommand { IndyBailoff = true }, 0.5);
+        Assert.Single(sent, s => s == (Run8Message.IndyBailoff, 1));
+
+        sender.Reset();
+        Assert.Equal((Run8Message.IndyBailoff, (byte)0), sent[^1]);
+        sent.Clear();
+        sender.Reset();
+        Assert.Empty(sent);
+    }
+
     /// <summary>Run8's bell button: each press turns the bell on or off.</summary>
     private sealed class ToggleBell
     {

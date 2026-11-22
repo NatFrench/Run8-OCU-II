@@ -40,6 +40,10 @@ still welcome. The rest use a best guess, marked **[guess]**.
 - [x] Permission to include the talker recordings in public downloads (Christian Currao, November
   2026). They're used with permission and aren't covered by the GPL.
 - [ ] Build the confirmed speeds into the program instead of leaving them as settings.
+- [ ] Pitch and catch (a large feature). Ideas: pitching control to Run8's own hump controller, and
+  between two players' OCUs in multiplayer.
+- [ ] Pullback protection (PSP / EPD): not started. Behaviour and override notes in
+  the maintainer notes (§17). Talker phrases already mapped; needs a way to fake yard zones.
 - [x] Refresh the photo skin: new photos of the owner's unit, with every control photographed in
   each position.
 

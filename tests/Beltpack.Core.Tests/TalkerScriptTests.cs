@@ -29,6 +29,48 @@ public class TalkerScriptTests
     }
 
     [Fact]
+    public void FullTransmissionEndsWithPullbackOffAndOut()
+    {
+        var (clips, missing) = TalkerScript.Parse(
+            "B N S F 4 0 2 6, O C U A. Operator requested emergency. Recover emergency from beltpack. Pullback protection off. Out.");
+
+        Assert.Equal(
+            [
+                "Railroads/BNSF", "Numbers/4", "Numbers/0", "Numbers/2", "Numbers/6", "Phrases/A",
+                "Phrases/OpRequestedEMG", "Phrases/RecoverEMGfromBelt",
+                "Phrases/PullbackProtectOff", "Phrases/Out",
+            ],
+            clips.Select(c => c.Name));
+        Assert.Equal(["O C U"], missing);
+    }
+
+    [Fact]
+    public void RemoteModeAnnouncesLocoInRemoteWithoutRecoverEmergency()
+    {
+        var (clips, _) = TalkerScript.Parse(
+            "B N S F 4 0 2 6, O C U A. Locomotive in remote mode. Pullback protection off. Out.");
+
+        Assert.Equal(
+            [
+                "Railroads/BNSF", "Numbers/4", "Numbers/0", "Numbers/2", "Numbers/6", "Phrases/A",
+                "Phrases/LocoInRemoteMode",
+                "Phrases/PullbackProtectOff", "Phrases/Out",
+            ],
+            clips.Select(c => c.Name));
+    }
+
+    [Fact]
+    public void AnBIsARecordedOcuIdentity()
+    {
+        var (clips, missing) = TalkerScript.Parse("U P 1 2, O C U AnB. Consist ready.");
+
+        Assert.Equal(
+            ["Railroads/UP", "Numbers/1", "Numbers/2", "Phrases/AnB", "Phrases/ConsistReady"],
+            clips.Select(c => c.Name));
+        Assert.Equal(["O C U"], missing);
+    }
+
+    [Fact]
     public void UnrecordedSentencesAreSilentAndListed()
     {
         var (clips, missing) = TalkerScript.Parse("Changeover to manual.");

@@ -53,13 +53,16 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 New-Item -ItemType Directory $stage | Out-Null
 Copy-Item (Join-Path $publish 'Beltpack.Overlay.exe') (Join-Path $stage 'Run8 OCU II.exe')
-# The talker recordings go out as one talker.pak (a zip, stored rather than compressed since they're
-# MP3s), with their licence note inside it and beside it.
+# The talker recordings go out as one talker.pak (a zip, stored rather than compressed since the
+# clips are already compressed or WAV), with their licence note inside it and beside it.
+# Prefers .wav; .mp3 still allowed. Skips talker\_Originals.
 $talker = Join-Path $root 'talker'
 if (Test-Path $talker) {
     Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
     $pak = [IO.Compression.ZipFile]::Open((Join-Path $stage 'talker.pak'), 'Create')
-    foreach ($f in Get-ChildItem $talker -Recurse -File | Where-Object { $_.Extension -in '.mp3', '.txt' }) {
+    foreach ($f in Get-ChildItem $talker -Recurse -File | Where-Object {
+            $_.Extension -in '.wav', '.mp3', '.txt' -and $_.FullName -notmatch '[\\/]_Originals[\\/]'
+        }) {
         $entry = $f.FullName.Substring($talker.Length + 1).Replace('\', '/')
         [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($pak, $f.FullName, $entry, 'NoCompression')
     }

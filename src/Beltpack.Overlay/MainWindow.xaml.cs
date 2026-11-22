@@ -36,6 +36,9 @@ public partial class MainWindow : Window
     private Talker? _talker;
     private Dictionary<Key, string> _bindings = new();
     private bool _beltpack;
+    private bool _linkOk;
+    private bool _wasLinkOk;
+    private string? _linkedUnit;
 
     public MainWindow()
     {
@@ -103,6 +106,7 @@ public partial class MainWindow : Window
     {
         _settings = settings;
 
+        _sender?.Reset();
         _link?.Dispose();
         _link = null;
         _linkError = null;
@@ -119,7 +123,7 @@ public partial class MainWindow : Window
         _run8Log.ConfiguredFolder = settings.Run8Folder;
         _controller = new RclController(settings.Rcl);
         _controller.Sound += s => _sound?.Play(s);
-        _controller.Talker += s => _talker?.Say(s);
+        _controller.Talker += Say;
         _sender = new CommandSender((type, value) => _link?.Send(type, value));
 
         CrashLog.Step("sound");
@@ -159,8 +163,18 @@ public partial class MainWindow : Window
         var input = _panel.Snapshot();
         var telemetry = _link?.Latest;
         bool linkOk = _link is not null && _link.TelemetryAge.TotalSeconds < _settings.Rcl.CommLossSeconds;
+        _linkOk = linkOk;
 
         _controller.ControllingUnit = _settings.LocomotiveFromRun8 ? _run8Log.ControllingUnit : null;
+        // Run8 leaves a min automatic application when you take a loco; release so BP can charge
+        // (needed for CHRG / recovery even while CAB is still MANUAL).
+        string? unit = _controller.ControllingUnit;
+        if (linkOk && (!_wasLinkOk || (unit is not null && unit != _linkedUnit)))
+            _sender.ForceTrainBrakeRelease();
+        _wasLinkOk = linkOk;
+        if (linkOk && unit is not null)
+            _linkedUnit = unit;
+
         _controller.Update(dt, input, linkOk ? telemetry : null, linkOk);
         if (_beltpack)
             _sender.Send(_controller.Command, dt, linkOk ? telemetry : null);
@@ -181,7 +195,19 @@ public partial class MainWindow : Window
     {
         _beltpack = !_beltpack;
         _sender.Reset();
-        _talker?.Say(_beltpack ? "Locomotive in remote mode." : "Changeover to manual.");
+        if (_beltpack && _linkOk)
+            _sender.ForceTrainBrakeRelease();
+        // Changeover to BELTPACK announces remote mode only. The real unit's "recover emergency"
+        // after changeover isn't applied here, so that phrase is left out.
+        if (_beltpack)
+            Say(_controller.FormatAnnouncement(["Locomotive in remote mode"]));
+    }
+
+    /// <summary>The talker is the locomotive's voice, so it's silent unless Run8 has a train sending data.</summary>
+    private void Say(string text)
+    {
+        if (_linkOk)
+            _talker?.Say(text);
     }
 
     private bool OnKey(Key key, bool down)
@@ -353,6 +379,7 @@ public partial class MainWindow : Window
     {
         _timer.Stop();
         SaveWindowState();
+        _sender.Reset();
         _hook.Dispose();
         _link?.Dispose();
         _sound?.Dispose();

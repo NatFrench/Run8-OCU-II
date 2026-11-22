@@ -104,7 +104,8 @@ public sealed class Talker : IDisposable
     {
         private const int SampleRate = 44100;
         private const double WordGap = 0.06;
-        private const double SentenceGap = 0.35;
+        // Between whole phrases (Consist ready / pullback / Out, etc.). Digit spacing uses WordGap.
+        private const double SentenceGap = 0.15;
 
         private readonly ClipSource _source;
         private readonly ConcurrentDictionary<string, float[]?> _cache = new();
@@ -179,9 +180,9 @@ public sealed class Talker : IDisposable
                 CrashLog.Step($"talker: decoding the first recording ({n})");
             try
             {
-                if (_source.Read(n) is not { } mp3)
+                if (_source.Read(n) is not { } data)
                     return null;
-                using var reader = new Mp3FileReader(new MemoryStream(mp3));
+                using var reader = OpenAudio(data);
                 ISampleProvider source = reader.ToSampleProvider();
                 if (source.WaveFormat.Channels == 2)
                     source = source.ToMono();
@@ -202,6 +203,16 @@ public sealed class Talker : IDisposable
                 return null;
             }
         });
+
+        /// <summary>WAV (RIFF) or MP3 bytes from talker.pak / the talker folder.</summary>
+        private static WaveStream OpenAudio(byte[] data)
+        {
+            var stream = new MemoryStream(data);
+            if (data.Length >= 4 && data[0] == (byte)'R' && data[1] == (byte)'I'
+                && data[2] == (byte)'F' && data[3] == (byte)'F')
+                return new WaveFileReader(stream);
+            return new Mp3FileReader(stream);
+        }
 
         /// <summary>Cuts the silence the clips are padded with, keeping a little either side.</summary>
         public static float[] Trim(float[] audio)

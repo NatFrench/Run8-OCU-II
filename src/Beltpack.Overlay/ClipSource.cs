@@ -6,7 +6,7 @@ namespace Beltpack.Overlay;
 /// <summary>
 /// Where the talker recordings come from: talker.pak beside the program (a zip of the clips, as
 /// shipped), or a talker folder there (development builds). Clips are named by their path inside,
-/// with forward slashes and without ".mp3".
+/// with forward slashes and without the extension (".wav" or ".mp3").
 /// </summary>
 public abstract class ClipSource : IDisposable
 {
@@ -14,10 +14,12 @@ public abstract class ClipSource : IDisposable
     public static readonly string PakPath = Path.Combine(AppContext.BaseDirectory, PakName);
     public static readonly string FolderPath = Path.Combine(AppContext.BaseDirectory, "talker");
 
+    private static readonly string[] AudioExtensions = [".wav", ".mp3"];
+
     public abstract string Location { get; }
     public abstract IReadOnlyList<string> Names { get; }
 
-    /// <summary>The clip's MP3 data, or null if there's no such clip.</summary>
+    /// <summary>The clip's audio bytes (WAV or MP3), or null if there's no such clip.</summary>
     public abstract byte[]? Read(string name);
 
     public virtual void Dispose()
@@ -47,14 +49,34 @@ public abstract class ClipSource : IDisposable
                 return null;
             }
         }
-        if (Directory.Exists(FolderPath) && Directory.EnumerateFiles(FolderPath, "*.mp3", SearchOption.AllDirectories).Any())
+        if (Directory.Exists(FolderPath) && EnumerateAudioFiles(FolderPath).Any())
             return new Folder(FolderPath);
         problem = $"{PakName} isn't in the program's folder";
         return null;
     }
 
-    private static string? ClipName(string path) =>
-        path.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ? path[..^4].Replace('\\', '/') : null;
+    private static IEnumerable<string> EnumerateAudioFiles(string root) =>
+        AudioExtensions.SelectMany(ext => Directory.EnumerateFiles(root, "*" + ext, SearchOption.AllDirectories))
+            .Where(f => !IsIgnoredPath(Path.GetRelativePath(root, f)));
+
+    /// <summary>Skip backups and editor leftovers under the talker folder.</summary>
+    private static bool IsIgnoredPath(string relative) =>
+        relative.StartsWith("_Originals" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+        || relative.StartsWith("_Originals/", StringComparison.OrdinalIgnoreCase);
+
+    private static string? ClipName(string path)
+    {
+        foreach (var ext in AudioExtensions)
+        {
+            if (path.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                return path[..^ext.Length].Replace('\\', '/');
+        }
+        return null;
+    }
+
+    /// <summary>Prefer .wav over .mp3 when both exist for the same clip name.</summary>
+    private static int ExtensionPreference(string path) =>
+        path.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ? 0 : 1;
 
     private sealed class Pak : ClipSource
     {
@@ -65,9 +87,17 @@ public abstract class ClipSource : IDisposable
         {
             Location = path;
             _zip = ZipFile.OpenRead(path);
+            var best = new Dictionary<string, (ZipArchiveEntry Entry, int Pref)>(StringComparer.OrdinalIgnoreCase);
             foreach (var entry in _zip.Entries)
-                if (ClipName(entry.FullName) is { } name)
-                    _entries[name] = entry;
+            {
+                if (IsIgnoredPath(entry.FullName) || ClipName(entry.FullName) is not { } name)
+                    continue;
+                int pref = ExtensionPreference(entry.FullName);
+                if (!best.TryGetValue(name, out var cur) || pref < cur.Pref)
+                    best[name] = (entry, pref);
+            }
+            foreach (var (name, (entry, _)) in best)
+                _entries[name] = entry;
             Names = _entries.Keys.Order().ToList();
         }
 
@@ -95,20 +125,33 @@ public abstract class ClipSource : IDisposable
         }
     }
 
-    private sealed class Folder(string path) : ClipSource
+    private sealed class Folder : ClipSource
     {
-        public override string Location { get; } = path;
+        private readonly Dictionary<string, string> _files;
 
-        public override IReadOnlyList<string> Names { get; } = Directory
-            .EnumerateFiles(path, "*.mp3", SearchOption.AllDirectories)
-            .Select(f => ClipName(Path.GetRelativePath(path, f))!)
-            .Order()
-            .ToList();
-
-        public override byte[]? Read(string name)
+        public Folder(string path)
         {
-            string file = Path.Combine(Location, name.Replace('/', Path.DirectorySeparatorChar) + ".mp3");
-            return File.Exists(file) ? File.ReadAllBytes(file) : null;
+            Location = path;
+            _files = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var best = new Dictionary<string, (string File, int Pref)>(StringComparer.OrdinalIgnoreCase);
+            foreach (var file in EnumerateAudioFiles(path))
+            {
+                string relative = Path.GetRelativePath(path, file);
+                if (ClipName(relative) is not { } name)
+                    continue;
+                int pref = ExtensionPreference(file);
+                if (!best.TryGetValue(name, out var cur) || pref < cur.Pref)
+                    best[name] = (file, pref);
+            }
+            foreach (var (name, (file, _)) in best)
+                _files[name] = file;
+            Names = _files.Keys.Order().ToList();
         }
+
+        public override string Location { get; }
+        public override IReadOnlyList<string> Names { get; }
+
+        public override byte[]? Read(string name) =>
+            _files.TryGetValue(name, out var file) ? File.ReadAllBytes(file) : null;
     }
 }

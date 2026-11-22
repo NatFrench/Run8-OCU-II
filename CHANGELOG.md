@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased
+
+## v2.0-beta2 (22 November 2026)
+
+- Talker messages follow Christian Currao's soundboard layout more closely: railroad and engine
+  number, OCU letter (A, B or AnB), the body phrases, then pullback protection off and Out.
+- Status when ready: "Consist ready", pullback, then "Brake pipe fully charged" when the pipe is
+  charged. Under a penalty or while waiting, Status still names that condition.
+- Brake recovery complete announces "Consist ready", then pullback, then "Brake pipe fully charged".
+- Moving AUTO to Full announces "Operator requested train brake" (talker only; not a penalty).
+  Full and Emerg talker lines stay quiet during brake recovery so they don't fight the recovery
+  messages.
+- An undesired brake-pipe dump (PCS open with the pipe already low) announces "Low brake pipe
+  pressure" then recover-emergency.
+- Changeover to BELTPACK says "Locomotive in remote mode"; changeover to MANUAL is silent.
+- The talker plays WAV or MP3 clips from `talker.pak`, and only speaks while Run8 has a train
+  sending data. Phrase gaps between whole clips are tighter (about 150 ms).
+- Taking the link often leaves a minimum automatic brake on in Run8; the overlay releases it so
+  the pipe can charge.
+- AUTO at Min no longer applies the locomotive brake: only the cars brake, as the job aid's brake
+  test expects (job aid 3.5). The overlay holds Run8's bail-off while AUTO is at Min, unless IND or
+  the speed control wants locomotive brake.
+- The taskbar button shows just the OCU II lettering, so the program is easy to spot at a glance.
+  Explorer and shortcuts keep the photo icon.
+
 ## v2.0-beta (7 November 2026, first public beta)
 
 The first public release, with the source code published under GPL-3.0.
